@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { connectDatabase } from './db.js';
 import { contactRouter } from './routes/contact.js';
+import { contentRouter, publishedContentRouter } from './routes/content.js';
 
 dotenv.config();
 
@@ -24,6 +25,12 @@ app.get('/api/health', (_request, response) => {
 });
 
 app.use('/api/contact', contactRouter);
+app.use('/api/content', contentRouter);
+app.use('/api/published-content', publishedContentRouter);
+
+app.get(['/admin', '/admin/'], (_request, response) => {
+  response.sendFile(path.join(frontendDirectory, 'admin.html'));
+});
 
 app.use((request, response, next) => {
   if (request.method !== 'GET') return next();

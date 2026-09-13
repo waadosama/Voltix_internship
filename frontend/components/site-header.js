@@ -14,6 +14,7 @@ class IdeaHeader extends HTMLElement {
           <a href="#services">What we do</a>
           <a href="#work">Selected work</a>
           <a href="#about">About us</a>
+          <a class="admin-link" href="/admin">Admin sign in <span aria-hidden="true">↗</span></a>
           <a class="nav-cta" href="#contact">Start a project <span aria-hidden="true">↗</span></a>
         </nav>
       </header>
