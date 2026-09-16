@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import { Content } from '../models/content.js';
+<<<<<<< HEAD
 import { requireAdmin } from '../middleware/auth.js';
+=======
+import { requireAdmin } from '../middleware/require-admin.js';
+>>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
 
 const allowedStatuses = new Set(['draft', 'published']);
 

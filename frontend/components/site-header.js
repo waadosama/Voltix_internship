@@ -1,10 +1,13 @@
 class IdeaHeader extends HTMLElement {
   connectedCallback() {
+<<<<<<< HEAD
     this.render();
     this.bindEvents();
   }
 
   render() {
+=======
+>>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
     this.innerHTML = `
       <header class="site-header" id="top">
         <a class="brand" href="#top" aria-label="Idea House home">
@@ -19,12 +22,17 @@ class IdeaHeader extends HTMLElement {
           <a href="#services">What we do</a>
           <a href="#work">Selected work</a>
           <a href="#about">About us</a>
+<<<<<<< HEAD
           <a class="admin-link" href="/admin">Admin studio <span aria-hidden="true">↗</span></a>
           <span class="client-auth-nav" id="client-auth-nav"></span>
+=======
+          <a class="admin-link" href="/admin">Admin sign in <span aria-hidden="true">↗</span></a>
+>>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
           <a class="nav-cta" href="#contact">Start a project <span aria-hidden="true">↗</span></a>
         </nav>
       </header>
     `;
+<<<<<<< HEAD
     this.updateClientAuthUI();
   }
 
@@ -57,6 +65,8 @@ class IdeaHeader extends HTMLElement {
 
   escapeHtml(value) {
     return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+=======
+>>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
   }
 }
 
