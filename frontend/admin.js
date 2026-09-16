@@ -9,21 +9,15 @@ const editorEmpty = document.querySelector('#editor-empty');
 const editorMode = document.querySelector('#editor-mode');
 const editorStatus = document.querySelector('#editor-status');
 const deleteButton = document.querySelector('#delete-content');
-<<<<<<< HEAD
 const tokenStorageKey = 'idea-house-admin-token';
 const usernameStorageKey = 'idea-house-admin-username';
 const passwordStorageKey = 'idea-house-admin-password';
 let adminToken = sessionStorage.getItem(tokenStorageKey) || '';
-=======
-const usernameStorageKey = 'idea-house-admin-username';
-const passwordStorageKey = 'idea-house-admin-password';
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
 let adminUsername = sessionStorage.getItem(usernameStorageKey) || '';
 let adminPassword = sessionStorage.getItem(passwordStorageKey) || '';
 let items = [];
 let editingId = null;
 
-<<<<<<< HEAD
 function getApiBase() {
   const { hostname, port } = window.location;
   if ((hostname === 'localhost' || hostname === '127.0.0.1') && port && port !== '3000') return 'http://localhost:3000';
@@ -32,12 +26,6 @@ function getApiBase() {
 
 function apiUrl(path = '') {
   return `${getApiBase()}/api/content${path}`;
-=======
-function apiUrl(path = '') {
-  const { hostname, port } = window.location;
-  if ((hostname === 'localhost' || hostname === '127.0.0.1') && port && port !== '3000') return `http://localhost:3000/api/content${path}`;
-  return `/api/content${path}`;
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
 }
 
 function setStatus(element, message, isError = true) {
@@ -47,7 +35,6 @@ function setStatus(element, message, isError = true) {
 }
 
 async function request(path = '', options = {}) {
-<<<<<<< HEAD
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
   if (adminToken) {
     headers['Authorization'] = `Bearer ${adminToken}`;
@@ -57,9 +44,6 @@ async function request(path = '', options = {}) {
     headers['X-Admin-Password'] = adminPassword;
   }
   const response = await fetch(apiUrl(path), { ...options, headers });
-=======
-  const response = await fetch(apiUrl(path), { ...options, headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUsername, 'X-Admin-Password': adminPassword, ...(options.headers || {}) } });
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.message || 'The request could not be completed.');
   return result;
@@ -103,17 +87,12 @@ async function loadItems() {
     renderItems();
   } catch (error) {
     setStatus(loginStatus, error.message);
-<<<<<<< HEAD
     sessionStorage.removeItem(tokenStorageKey);
     sessionStorage.removeItem(usernameStorageKey);
     sessionStorage.removeItem(passwordStorageKey);
     adminToken = '';
     adminUsername = '';
     adminPassword = '';
-=======
-    sessionStorage.removeItem(usernameStorageKey);
-    sessionStorage.removeItem(passwordStorageKey);
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
     loginPanel.hidden = false;
     studio.hidden = true;
   }
@@ -121,7 +100,6 @@ async function loadItems() {
 
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-<<<<<<< HEAD
   const emailInput = loginForm.elements['admin-username'].value.trim();
   const passwordInput = loginForm.elements['admin-password'].value;
   loginForm.querySelector('button').disabled = true;
@@ -146,20 +124,12 @@ loginForm.addEventListener('submit', async (event) => {
     // Fallback attempt with legacy credentials if standard login returns unauthenticated/unauthorized
     adminUsername = emailInput;
     adminPassword = passwordInput;
-=======
-  adminUsername = loginForm.elements['admin-username'].value.trim();
-  adminPassword = loginForm.elements['admin-password'].value;
-  loginForm.querySelector('button').disabled = true;
-  setStatus(loginStatus, '');
-  try {
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
     sessionStorage.setItem(usernameStorageKey, adminUsername);
     sessionStorage.setItem(passwordStorageKey, adminPassword);
     loginPanel.hidden = true;
     studio.hidden = false;
     await loadItems();
   } catch (error) {
-<<<<<<< HEAD
     setStatus(loginStatus, error.message || 'Login failed.');
     sessionStorage.removeItem(tokenStorageKey);
     sessionStorage.removeItem(usernameStorageKey);
@@ -167,9 +137,6 @@ loginForm.addEventListener('submit', async (event) => {
     adminToken = '';
     adminUsername = '';
     adminPassword = '';
-=======
-    setStatus(loginStatus, error.message);
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
   } finally {
     loginForm.querySelector('button').disabled = false;
   }
@@ -219,7 +186,6 @@ deleteButton.addEventListener('click', () => deleteItem(editingId));
 
 document.querySelector('#new-content').addEventListener('click', () => openEditor());
 document.querySelector('#cancel-edit').addEventListener('click', () => { editingId = null; renderItems(); editorEmpty.hidden = false; contentForm.hidden = true; });
-<<<<<<< HEAD
 document.querySelector('#logout').addEventListener('click', () => {
   sessionStorage.removeItem(tokenStorageKey);
   sessionStorage.removeItem(usernameStorageKey);
@@ -228,11 +194,6 @@ document.querySelector('#logout').addEventListener('click', () => {
 });
 
 if (adminToken || (adminUsername && adminPassword)) {
-=======
-document.querySelector('#logout').addEventListener('click', () => { sessionStorage.removeItem(usernameStorageKey); sessionStorage.removeItem(passwordStorageKey); window.location.reload(); });
-
-if (adminUsername && adminPassword) {
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
   loginPanel.hidden = true;
   studio.hidden = false;
   loadItems();

@@ -38,7 +38,6 @@ class IdeaContactForm extends HTMLElement {
     formStatus.classList.remove('is-error', 'is-success');
 
     try {
-<<<<<<< HEAD
       const headers = { 'Content-Type': 'application/json' };
       const token = window.IdeaClientAuth?.getToken?.();
       if (token) {
@@ -48,11 +47,6 @@ class IdeaContactForm extends HTMLElement {
       const response = await fetch(this.apiUrl(), {
         method: 'POST',
         headers,
-=======
-      const response = await fetch(this.apiUrl(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
         body: JSON.stringify(payload)
       });
 

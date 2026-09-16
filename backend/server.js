@@ -4,10 +4,7 @@ import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { connectDatabase } from './db.js';
-<<<<<<< HEAD
 import { authRouter } from './routes/auth.js';
-=======
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
 import { contactRouter } from './routes/contact.js';
 import { contentRouter, publishedContentRouter } from './routes/content.js';
 
@@ -15,7 +12,9 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/voltix';
+const mongoUri =
+  process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/voltix';
+
 const currentFile = fileURLToPath(import.meta.url);
 const currentDirectory = path.dirname(currentFile);
 const frontendDirectory = path.resolve(currentDirectory, '..', 'frontend');
@@ -28,10 +27,7 @@ app.get('/api/health', (_request, response) => {
   response.json({ status: 'ok', service: 'idea-house-api' });
 });
 
-<<<<<<< HEAD
 app.use('/api/auth', authRouter);
-=======
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
 app.use('/api/contact', contactRouter);
 app.use('/api/content', contentRouter);
 app.use('/api/published-content', publishedContentRouter);
@@ -42,12 +38,14 @@ app.get(['/admin', '/admin/'], (_request, response) => {
 
 app.use((request, response, next) => {
   if (request.method !== 'GET') return next();
+
   return response.sendFile(path.join(frontendDirectory, 'index.html'));
 });
 
 async function start() {
   try {
     await connectDatabase(mongoUri);
+
     console.log(`Connected to MongoDB at ${mongoUri}`);
 
     app.listen(port, () => {

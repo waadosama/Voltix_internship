@@ -1,9 +1,6 @@
 import { Router } from 'express';
 import { Inquiry } from '../models/inquiry.js';
-<<<<<<< HEAD
 import { optionalAuth } from '../middleware/auth.js';
-=======
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -32,11 +29,7 @@ function validateInquiry(body) {
 
 export const contactRouter = Router();
 
-<<<<<<< HEAD
 contactRouter.post('/', optionalAuth, async (request, response) => {
-=======
-contactRouter.post('/', async (request, response) => {
->>>>>>> 840a98e1db163fdf58b10f72aa48550735a92727
   const { errors, data } = validateInquiry(request.body);
 
   if (errors.length > 0) {
