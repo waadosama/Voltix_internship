@@ -22,6 +22,21 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'client'],
     default: 'client',
     required: true
+  },
+  phone: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  company: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  bio: {
+    type: String,
+    default: '',
+    trim: true
   }
 }, {
   timestamps: true

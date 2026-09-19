@@ -1,0 +1,28 @@
+.dashboard-main { margin: auto; max-width: 1440px; padding: 40px 5vw 120px; }
+.dashboard-gate { min-height: 55vh; padding-top: 70px; }
+.dashboard-copy { font-size: 16px; line-height: 1.6; max-width: 460px; }
+.dashboard-intro { align-items: flex-start; display: flex; gap: 24px; justify-content: space-between; margin-bottom: 48px; }
+.dashboard-logout { border-bottom: 1px solid currentColor; flex: 0 0 auto; font-family: var(--mono); font-size: 10px; margin-top: 12px; padding-bottom: 6px; text-transform: uppercase; }
+.dashboard-grid { display: grid; gap: 64px; grid-template-columns: minmax(240px, .42fr) 1fr; }
+.dashboard-summary { border-top: 1px solid var(--line); padding-top: 24px; }
+.dashboard-summary dl { margin: 0; }
+.dashboard-summary dl > div { border-bottom: 1px solid var(--line); display: grid; gap: 8px; grid-template-columns: 110px 1fr; padding: 14px 0; }
+.dashboard-summary dt { font-family: var(--mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
+.dashboard-summary dd { font-size: 15px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.dashboard-form { display: grid; gap: 18px 28px; grid-template-columns: 1fr 1fr; }
+.dashboard-form label { border-bottom: 1px solid var(--ink); display: flex; flex-direction: column; gap: 7px; padding-bottom: 8px; }
+.dashboard-form label span { font-family: var(--mono); font-size: 9px; text-transform: uppercase; }
+.dashboard-form input, .dashboard-form textarea { background: transparent; border: 0; color: var(--ink); font: 500 15px var(--sans); outline: 0; padding: 4px 0; resize: vertical; width: 100%; }
+.dashboard-form input:disabled { opacity: .55; }
+.dashboard-full { grid-column: span 2; }
+.dashboard-hint { font-family: var(--mono); font-size: 10px; line-height: 1.5; margin: 0; opacity: .7; }
+.dashboard-form .button { border: 0; cursor: pointer; justify-self: start; margin-top: 8px; }
+.dashboard-form .form-status { margin-top: 8px; min-height: 16px; }
+
+@media (max-width: 800px) {
+  .dashboard-intro { display: block; }
+  .dashboard-logout { margin-bottom: 28px; margin-top: 0; }
+  .dashboard-grid, .dashboard-form { grid-template-columns: 1fr; }
+  .dashboard-full { grid-column: span 1; }
+  .dashboard-summary dl > div { grid-template-columns: 1fr; }
+}

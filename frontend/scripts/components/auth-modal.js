@@ -1,8 +1,8 @@
+import { apiUrl, parseJson } from '../lib/api.js';
+import { clearClientSession, getClientToken, getClientUser, notifyClientAuth, setClientSession } from '../lib/client-auth.js';
+
 class IdeaAuthModal extends HTMLElement {
   connectedCallback() {
-    this.tokenKey = 'idea-house-client-token';
-    this.userKey = 'idea-house-client-user';
-
     this.innerHTML = `
       <dialog class="auth-modal" id="auth-dialog">
         <div class="auth-modal-content">
@@ -60,18 +60,10 @@ class IdeaAuthModal extends HTMLElement {
     window.IdeaClientAuth = {
       open: (mode = 'login') => this.open(mode),
       close: () => this.close(),
-      getToken: () => localStorage.getItem(this.tokenKey),
-      getUser: () => {
-        try { return JSON.parse(localStorage.getItem(this.userKey)); } catch { return null; }
-      },
+      getToken: () => getClientToken(),
+      getUser: () => getClientUser(),
       logout: () => this.logout()
     };
-  }
-
-  getApiBase() {
-    const { hostname, port } = window.location;
-    if ((hostname === 'localhost' || hostname === '127.0.0.1') && port && port !== '3000') return 'http://localhost:3000';
-    return '';
   }
 
   open(mode = 'login') {
@@ -125,26 +117,29 @@ class IdeaAuthModal extends HTMLElement {
     const payload = mode === 'register' ? { name, email, password, role: 'client' } : { email, password };
 
     try {
-      const response = await fetch(`${this.getApiBase()}${endpoint}`, {
+      const response = await fetch(apiUrl(endpoint), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
-      const result = await response.json().catch(() => ({}));
+      const result = await parseJson(response);
       if (!response.ok) {
         throw new Error(result.message || 'Authentication failed.');
       }
 
-      localStorage.setItem(this.tokenKey, result.token);
-      localStorage.setItem(this.userKey, JSON.stringify(result.user));
+      setClientSession(result.token, result.user);
 
       this.statusEl.classList.add('is-success');
       this.statusEl.textContent = result.message || 'Success!';
 
       setTimeout(() => {
         this.close();
-        window.dispatchEvent(new CustomEvent('client-auth-changed', { detail: { user: result.user } }));
+        notifyClientAuth(result.user);
+        const onDashboard = window.location.pathname === '/dashboard' || window.location.pathname === '/dashboard/';
+        if (!onDashboard) {
+          window.location.assign('/dashboard');
+        }
       }, 500);
     } catch (error) {
       this.statusEl.classList.add('is-error');
@@ -155,9 +150,8 @@ class IdeaAuthModal extends HTMLElement {
   }
 
   logout() {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.userKey);
-    window.dispatchEvent(new CustomEvent('client-auth-changed', { detail: { user: null } }));
+    clearClientSession();
+    notifyClientAuth(null);
   }
 }
 

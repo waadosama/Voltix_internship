@@ -1,3 +1,5 @@
+import { apiUrl, parseJson } from '../lib/api.js';
+
 class IdeaContactForm extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
@@ -12,17 +14,6 @@ class IdeaContactForm extends HTMLElement {
     `;
 
     this.querySelector('form').addEventListener('submit', (event) => this.submitForm(event));
-  }
-
-  apiUrl() {
-    const { hostname, port } = window.location;
-    const usingFrontendDevServer = hostname === '127.0.0.1' || hostname === 'localhost';
-
-    if (usingFrontendDevServer && port && port !== '3000') {
-      return 'http://localhost:3000/api/contact';
-    }
-
-    return '/api/contact';
   }
 
   async submitForm(event) {
@@ -44,13 +35,13 @@ class IdeaContactForm extends HTMLElement {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(this.apiUrl(), {
+      const response = await fetch(apiUrl('/api/contact'), {
         method: 'POST',
         headers,
         body: JSON.stringify(payload)
       });
 
-      const result = await response.json().catch(() => ({}));
+      const result = await parseJson(response);
 
       if (!response.ok) {
         throw new Error(result.message || 'Please check the form and try again.');

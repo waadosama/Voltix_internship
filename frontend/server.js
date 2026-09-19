@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 const port = process.env.PORT || 4173;
 const currentFile = fileURLToPath(import.meta.url);
 const frontendDirectory = path.dirname(currentFile);
+const pagesDirectory = path.join(frontendDirectory, 'pages');
 const contentTypes = {
   '.css': 'text/css',
   '.html': 'text/html',
@@ -17,13 +18,24 @@ const contentTypes = {
   '.svg': 'image/svg+xml'
 };
 
+const routeFiles = {
+  '/': 'index.html',
+  '/admin': 'admin.html',
+  '/admin/': 'admin.html',
+  '/dashboard': 'dashboard.html',
+  '/dashboard/': 'dashboard.html'
+};
+
 const server = createServer((request, response) => {
   const requestedPath = decodeURIComponent(request.url.split('?')[0]);
+  const mappedFile = routeFiles[requestedPath];
   const safePath = path.normalize(requestedPath).replace(/^([/\\])+/, '');
-  let filePath = path.join(frontendDirectory, safePath || 'index.html');
+  let filePath = mappedFile
+    ? path.join(pagesDirectory, mappedFile)
+    : path.join(frontendDirectory, safePath);
 
   if (!existsSync(filePath) || statSync(filePath).isDirectory()) {
-    filePath = path.join(frontendDirectory, 'index.html');
+    filePath = path.join(pagesDirectory, 'index.html');
   }
 
   const extension = path.extname(filePath);

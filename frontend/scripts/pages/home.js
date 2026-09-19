@@ -1,3 +1,6 @@
+import { apiUrl, parseJson } from '../lib/api.js';
+import { escapeHtml } from '../lib/html.js';
+
 const menuToggle = document.querySelector('.menu-toggle');
 const primaryNav = document.querySelector('.primary-nav');
 
@@ -38,15 +41,10 @@ async function loadPublishedContent() {
   const grid = document.querySelector('#managed-content-grid');
   if (!section || !grid) return;
 
-  const { hostname, port } = window.location;
-  const apiBase = (hostname === 'localhost' || hostname === '127.0.0.1') && port && port !== '3000'
-    ? 'http://localhost:3000'
-    : '';
-
   try {
-    const response = await fetch(`${apiBase}/api/published-content`);
+    const response = await fetch(apiUrl('/api/published-content'));
     if (!response.ok) return;
-    const { items } = await response.json();
+    const { items } = await parseJson(response);
     if (!items.length) return;
 
     grid.innerHTML = items.map((item) => `
@@ -64,9 +62,12 @@ async function loadPublishedContent() {
   }
 }
 
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
-}
-
 loadPublishedContent();
+
+if (new URLSearchParams(window.location.search).has('signin')) {
+  window.addEventListener('DOMContentLoaded', () => {
+    window.IdeaClientAuth?.open('login');
+  });
+  window.setTimeout(() => window.IdeaClientAuth?.open('login'), 0);
+}
 

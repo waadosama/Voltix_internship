@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Your Idea House customer dashboard." />
+  <title>Idea House - Customer Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles/main.css" />
+  <link rel="stylesheet" href="/styles/dashboard.css" />
+</head>
+<body>
+  <div class="site-shell">
+    <idea-header></idea-header>
+
+    <main class="dashboard-main">
+      <section class="dashboard-gate" id="dashboard-gate">
+        <p class="eyebrow"><span class="eyebrow-dot"></span> Customer workspace</p>
+        <h1>Checking your<br /><em>session.</em></h1>
+        <p class="dashboard-copy">We are loading your account from the server.</p>
+      </section>
+
+      <section class="dashboard-shell" id="dashboard-shell" hidden>
+        <div class="dashboard-intro">
+          <div>
+            <p class="eyebrow"><span class="eyebrow-dot"></span> Customer dashboard</p>
+            <h1>Your house,<br /><em>your account.</em></h1>
+            <p class="dashboard-copy">Your profile is loaded from the backend database. Email and role stay locked; you can update the rest.</p>
+          </div>
+          <button class="text-button dashboard-logout" id="dashboard-logout" type="button">Sign out</button>
+        </div>
+
+        <div class="dashboard-grid">
+          <aside class="dashboard-summary" aria-live="polite">
+            <p class="eyebrow">Account data</p>
+            <dl>
+              <div><dt>Name</dt><dd id="summary-name">-</dd></div>
+              <div><dt>Email</dt><dd id="summary-email">-</dd></div>
+              <div><dt>Role</dt><dd id="summary-role">-</dd></div>
+              <div><dt>Company</dt><dd id="summary-company">-</dd></div>
+              <div><dt>Phone</dt><dd id="summary-phone">-</dd></div>
+              <div><dt>Member since</dt><dd id="summary-created">-</dd></div>
+              <div><dt>Last updated</dt><dd id="summary-updated">-</dd></div>
+            </dl>
+          </aside>
+
+          <form class="dashboard-form" id="profile-form" novalidate>
+            <p class="eyebrow dashboard-full">Editable profile</p>
+            <label>
+              <span>Full name</span>
+              <input name="name" type="text" autocomplete="name" required maxlength="120" />
+            </label>
+            <label>
+              <span>Email (read only)</span>
+              <input name="email" type="email" autocomplete="email" disabled />
+            </label>
+            <label>
+              <span>Company</span>
+              <input name="company" type="text" autocomplete="organization" maxlength="120" />
+            </label>
+            <label>
+              <span>Phone</span>
+              <input name="phone" type="tel" autocomplete="tel" maxlength="40" />
+            </label>
+            <label class="dashboard-full">
+              <span>Bio</span>
+              <textarea name="bio" rows="4" maxlength="500"></textarea>
+            </label>
+            <label>
+              <span>Current password</span>
+              <input name="currentPassword" type="password" autocomplete="current-password" />
+            </label>
+            <label>
+              <span>New password</span>
+              <input name="newPassword" type="password" autocomplete="new-password" minlength="6" />
+            </label>
+            <p class="dashboard-hint dashboard-full">Leave password fields empty unless you want to change it. A new password requires the current one.</p>
+            <button class="button button-dark" type="submit" id="save-profile">Save profile <span aria-hidden="true">↗</span></button>
+            <p class="form-status dashboard-full" id="profile-status" role="alert"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <idea-auth-modal></idea-auth-modal>
+  <script type="module" src="/scripts/components/auth-modal.js"></script>
+  <script type="module" src="/scripts/components/site-header.js"></script>
+  <script type="module" src="/scripts/pages/dashboard.js"></script>
+</body>
+</html>

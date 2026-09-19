@@ -1,3 +1,5 @@
+import { escapeHtml } from '../lib/html.js';
+
 class IdeaHeader extends HTMLElement {
   connectedCallback() {
     this.render();
@@ -39,7 +41,7 @@ class IdeaHeader extends HTMLElement {
     const user = window.IdeaClientAuth?.getUser?.();
     if (user) {
       container.innerHTML = `
-        <span class="client-user-badge">Hi, ${this.escapeHtml(user.name || user.email)}</span>
+        <span class="client-user-badge">Hi, ${escapeHtml(user.name || user.email)}</span>
         <button type="button" class="text-button" id="client-logout-btn">Sign out</button>
       `;
       container.querySelector('#client-logout-btn')?.addEventListener('click', () => {
@@ -55,9 +57,6 @@ class IdeaHeader extends HTMLElement {
     }
   }
 
-  escapeHtml(value) {
-    return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
-  }
 }
 
 customElements.define('idea-header', IdeaHeader);

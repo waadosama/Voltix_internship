@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { User } from '../models/user.js';
-import { hashPassword, verifyPassword, signToken, requireAuth } from '../middleware/auth.js';
+import { hashPassword, matchesConfiguredAdmin, verifyPassword, signToken, requireAuth } from '../middleware/auth.js';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -14,7 +14,11 @@ function serializeUser(user) {
     name: user.name,
     email: user.email,
     role: user.role,
-    createdAt: user.createdAt
+    phone: user.phone || '',
+    company: user.company || '',
+    bio: user.bio || '',
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt
   };
 }
 
@@ -73,14 +77,12 @@ authRouter.post('/login', async (request, response) => {
   }
 
   // Check env admin fallback
-  const configuredUsername = process.env.ADMIN_USERNAME;
-  const configuredPassword = process.env.ADMIN_PASSWORD;
-
-  if (configuredUsername && configuredPassword && email === configuredUsername.toLowerCase() && password === configuredPassword) {
-    const token = signToken({ id: 'admin-env-id', email: configuredUsername, role: 'admin', name: 'Admin' });
+  if (matchesConfiguredAdmin(email, password)) {
+    const adminEmail = process.env.ADMIN_USERNAME.trim();
+    const token = signToken({ id: 'admin-env-id', email: adminEmail, role: 'admin', name: 'Admin' });
     return response.json({
       token,
-      user: { id: 'admin-env-id', email: configuredUsername, name: 'Admin', role: 'admin' }
+      user: { id: 'admin-env-id', email: adminEmail, name: 'Admin', role: 'admin' }
     });
   }
 
@@ -117,5 +119,66 @@ authRouter.get('/me', requireAuth, async (request, response) => {
   } catch (error) {
     console.error('Get profile failed:', error);
     return response.status(500).json({ message: 'Could not retrieve user profile.' });
+  }
+});
+
+authRouter.patch('/me', requireAuth, async (request, response) => {
+  try {
+    if (request.user.id === 'admin-env-id') {
+      return response.status(400).json({
+        message: 'This environment admin account is not stored in the database, so the profile cannot be updated.'
+      });
+    }
+
+    const name = text(request.body?.name);
+    const phone = text(request.body?.phone);
+    const company = text(request.body?.company);
+    const bio = text(request.body?.bio);
+    const currentPassword = request.body?.currentPassword;
+    const newPassword = request.body?.newPassword;
+    const errors = [];
+
+    if (!name) errors.push('Name is required.');
+    if (phone.length > 40) errors.push('Phone must be 40 characters or fewer.');
+    if (company.length > 120) errors.push('Company must be 120 characters or fewer.');
+    if (bio.length > 500) errors.push('Bio must be 500 characters or fewer.');
+
+    if (newPassword) {
+      if (!currentPassword || typeof currentPassword !== 'string') {
+        errors.push('Current password is required to set a new password.');
+      } else if (typeof newPassword !== 'string' || newPassword.length < 6) {
+        errors.push('New password must be at least 6 characters long.');
+      }
+    }
+
+    if (errors.length > 0) {
+      return response.status(400).json({ message: errors.join(' ') });
+    }
+
+    const user = await User.findById(request.user.id);
+    if (!user) {
+      return response.status(404).json({ message: 'User not found.' });
+    }
+
+    if (newPassword) {
+      if (!verifyPassword(currentPassword, user.password)) {
+        return response.status(400).json({ message: 'Current password is incorrect.' });
+      }
+      user.password = hashPassword(newPassword);
+    }
+
+    user.name = name;
+    user.phone = phone;
+    user.company = company;
+    user.bio = bio;
+    await user.save();
+
+    return response.json({
+      message: 'Profile updated successfully.',
+      user: serializeUser(user)
+    });
+  } catch (error) {
+    console.error('Update profile failed:', error);
+    return response.status(500).json({ message: 'Could not update profile. Please try again.' });
   }
 });

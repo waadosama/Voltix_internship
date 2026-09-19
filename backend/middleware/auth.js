@@ -1,4 +1,7 @@
 import crypto from 'node:crypto'; //auth
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'idea-house-secret-key-change-in-production';
 
@@ -86,6 +89,20 @@ export function extractToken(request) {
   return null;
 }
 
+export function matchesConfiguredAdmin(username, password) {
+  const configuredUsername = process.env.ADMIN_USERNAME?.trim().toLowerCase();
+  const configuredPassword = process.env.ADMIN_PASSWORD?.trim();
+  const suppliedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
+  const suppliedPassword = typeof password === 'string' ? password.trim() : '';
+
+  return Boolean(
+    configuredUsername &&
+    configuredPassword &&
+    suppliedUsername === configuredUsername &&
+    suppliedPassword === configuredPassword
+  );
+}
+
 export function optionalAuth(request, response, next) {
   const token = extractToken(request);
   if (token) {
@@ -113,14 +130,11 @@ export function requireAuth(request, response, next) {
 }
 
 export function requireAdmin(request, response, next) {
-  // Backwards compatibility with legacy admin headers if configured
-  const configuredUsername = process.env.ADMIN_USERNAME;
-  const configuredPassword = process.env.ADMIN_PASSWORD;
   const suppliedUsername = request.get('X-Admin-Username');
   const suppliedPassword = request.get('X-Admin-Password');
 
-  if (configuredUsername && configuredPassword && suppliedUsername === configuredUsername && suppliedPassword === configuredPassword) {
-    request.user = { role: 'admin', email: configuredUsername, name: 'Legacy Admin' };
+  if (matchesConfiguredAdmin(suppliedUsername, suppliedPassword)) {
+    request.user = { role: 'admin', email: process.env.ADMIN_USERNAME.trim(), name: 'Legacy Admin' };
     return next();
   }
 

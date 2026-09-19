@@ -1,3 +1,6 @@
+import { apiUrl as makeApiUrl, parseJson } from '../lib/api.js';
+import { escapeHtml } from '../lib/html.js';
+
 const loginPanel = document.querySelector('#login-panel');
 const studio = document.querySelector('#studio');
 const loginForm = document.querySelector('#login-form');
@@ -18,14 +21,8 @@ let adminPassword = sessionStorage.getItem(passwordStorageKey) || '';
 let items = [];
 let editingId = null;
 
-function getApiBase() {
-  const { hostname, port } = window.location;
-  if ((hostname === 'localhost' || hostname === '127.0.0.1') && port && port !== '3000') return 'http://localhost:3000';
-  return '';
-}
-
 function apiUrl(path = '') {
-  return `${getApiBase()}/api/content${path}`;
+  return makeApiUrl(`/api/content${path}`);
 }
 
 function setStatus(element, message, isError = true) {
@@ -44,7 +41,7 @@ async function request(path = '', options = {}) {
     headers['X-Admin-Password'] = adminPassword;
   }
   const response = await fetch(apiUrl(path), { ...options, headers });
-  const result = await response.json().catch(() => ({}));
+  const result = await parseJson(response);
   if (!response.ok) throw new Error(result.message || 'The request could not be completed.');
   return result;
 }
@@ -58,10 +55,6 @@ function renderItems() {
   contentItems.innerHTML = items.map((item) => `<div class="content-item ${item.id === editingId ? 'is-active' : ''}"><button class="content-item-select" data-id="${item.id}" type="button"><span class="item-status ${item.status}">${item.status}</span><strong>${escapeHtml(item.title)}</strong><small>/${escapeHtml(item.slug)}</small></button><button class="content-item-delete" data-delete-id="${item.id}" type="button">Delete</button></div>`).join('');
   contentItems.querySelectorAll('[data-id]').forEach((button) => button.addEventListener('click', () => openEditor(button.dataset.id)));
   contentItems.querySelectorAll('[data-delete-id]').forEach((button) => button.addEventListener('click', () => deleteItem(button.dataset.deleteId)));
-}
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 }
 
 function openEditor(id = null) {
@@ -106,12 +99,12 @@ loginForm.addEventListener('submit', async (event) => {
   setStatus(loginStatus, '');
   try {
     // Attempt JWT login first
-    const response = await fetch(`${getApiBase()}/api/auth/login`, {
+    const response = await fetch(makeApiUrl('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: emailInput, password: passwordInput })
     });
-    const result = await response.json().catch(() => ({}));
+    const result = await parseJson(response);
     if (response.ok && result.token && result.user?.role === 'admin') {
       adminToken = result.token;
       sessionStorage.setItem(tokenStorageKey, adminToken);

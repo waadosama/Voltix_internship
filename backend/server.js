@@ -18,6 +18,7 @@ const mongoUri =
 const currentFile = fileURLToPath(import.meta.url);
 const currentDirectory = path.dirname(currentFile);
 const frontendDirectory = path.resolve(currentDirectory, '..', 'frontend');
+const frontendPagesDirectory = path.join(frontendDirectory, 'pages');
 
 app.use(cors());
 app.use(express.json());
@@ -33,13 +34,17 @@ app.use('/api/content', contentRouter);
 app.use('/api/published-content', publishedContentRouter);
 
 app.get(['/admin', '/admin/'], (_request, response) => {
-  response.sendFile(path.join(frontendDirectory, 'admin.html'));
+  response.sendFile(path.join(frontendPagesDirectory, 'admin.html'));
+});
+
+app.get(['/dashboard', '/dashboard/'], (_request, response) => {
+  response.sendFile(path.join(frontendPagesDirectory, 'dashboard.html'));
 });
 
 app.use((request, response, next) => {
   if (request.method !== 'GET') return next();
 
-  return response.sendFile(path.join(frontendDirectory, 'index.html'));
+  return response.sendFile(path.join(frontendPagesDirectory, 'index.html'));
 });
 
 async function start() {
