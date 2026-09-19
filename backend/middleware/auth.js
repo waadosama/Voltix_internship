@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+import crypto from 'node:crypto'; //auth
 
 const JWT_SECRET = process.env.JWT_SECRET || 'idea-house-secret-key-change-in-production';
 
