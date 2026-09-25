@@ -12,14 +12,20 @@ const editorEmpty = document.querySelector('#editor-empty');
 const editorMode = document.querySelector('#editor-mode');
 const editorStatus = document.querySelector('#editor-status');
 const deleteButton = document.querySelector('#delete-content');
-const tokenStorageKey = 'idea-house-admin-token';
-const usernameStorageKey = 'idea-house-admin-username';
-const passwordStorageKey = 'idea-house-admin-password';
-let adminToken = sessionStorage.getItem(tokenStorageKey) || '';
-let adminUsername = sessionStorage.getItem(usernameStorageKey) || '';
-let adminPassword = sessionStorage.getItem(passwordStorageKey) || '';
+const requestForm = document.querySelector('#request-form');
+const requestItems = document.querySelector('#request-items');
+const requestCount = document.querySelector('#request-count');
+const newRequestBtn = document.querySelector('#new-request');
+const adminTokenStorageKey = 'idea-house-admin-token';
+const adminUsernameStorageKey = 'idea-house-admin-username';
+const adminPasswordStorageKey = 'idea-house-admin-password';
+let adminToken = sessionStorage.getItem(adminTokenStorageKey) || '';
+let adminUsername = sessionStorage.getItem(adminUsernameStorageKey) || '';
+let adminPassword = sessionStorage.getItem(adminPasswordStorageKey) || '';
 let items = [];
+let requests = [];
 let editingId = null;
+let contentEditingId = null;
 
 function apiUrl(path = '') {
   return makeApiUrl(`/api/content${path}`);
@@ -52,13 +58,24 @@ function renderItems() {
     contentItems.innerHTML = '<p class="empty-state">No content yet. Start with a new item.</p>';
     return;
   }
-  contentItems.innerHTML = items.map((item) => `<div class="content-item ${item.id === editingId ? 'is-active' : ''}"><button class="content-item-select" data-id="${item.id}" type="button"><span class="item-status ${item.status}">${item.status}</span><strong>${escapeHtml(item.title)}</strong><small>/${escapeHtml(item.slug)}</small></button><button class="content-item-delete" data-delete-id="${item.id}" type="button">Delete</button></div>`).join('');
-  contentItems.querySelectorAll('[data-id]').forEach((button) => button.addEventListener('click', () => openEditor(button.dataset.id)));
-  contentItems.querySelectorAll('[data-delete-id]').forEach((button) => button.addEventListener('click', () => deleteItem(button.dataset.deleteId)));
+  contentItems.innerHTML = items.map((item) => `<div class="content-item ${item.id === contentEditingId ? 'is-active' : ''}"><button class="content-item-select" data-id="${item.id}" type="button"><span class="item-status ${item.status}">${item.status}</span><strong>${escapeHtml(item.title)}</strong><small>/${escapeHtml(item.slug)}</small></button><button class="content-item-delete" data-delete-id="${item.id}" type="button">Delete</button></div>`).join('');
+  contentItems.querySelectorAll('[data-id]').forEach((button) => button.addEventListener('click', () => openContentEditor(button.dataset.id)));
+  contentItems.querySelectorAll('[data-delete-id]').forEach((button) => button.addEventListener('click', () => deleteContentItem(button.dataset.deleteId)));
 }
 
-function openEditor(id = null) {
-  editingId = id;
+function renderRequests() {
+  requestCount.textContent = `${requests.length} ${requests.length === 1 ? 'request' : 'requests'}`;
+  if (!requests.length) {
+    requestItems.innerHTML = '<p class="empty-state">No requests yet. Start by having customers submit requests.</p>';
+    return;
+  }
+  requestItems.innerHTML = requests.map((item) => `<div class="request-item ${item.id === editingId ? 'is-active' : ''}"><button class="request-item-select" data-id="${item.id}" type="button"><span class="item-status ${item.status}">${item.status}</span><strong>${escapeHtml(item.name)}</strong> (${escapeHtml(item.email)})<small>/ ${escapeHtml(item.subject)}</small></button><button class="request-item-delete" data-delete-id="${item.id}" type="button">Delete</button></div>`).join('');
+  requestItems.querySelectorAll('[data-id]').forEach((button) => button.addEventListener('click', () => openRequestEditor(button.dataset.id)));
+  requestItems.querySelectorAll('[data-delete-id]').forEach((button) => button.addEventListener('click', () => deleteRequestItem(button.dataset.deleteId)));
+}
+
+function openContentEditor(id = null) {
+  contentEditingId = id;
   const item = items.find((entry) => entry.id === id);
   editorEmpty.hidden = true;
   contentForm.hidden = false;
@@ -74,15 +91,38 @@ function openEditor(id = null) {
   renderItems();
 }
 
+function openRequestEditor(id = null) {
+  editingId = id;
+  const item = requests.find((entry) => entry.id === id);
+  editorEmpty.hidden = true;
+  requestForm.hidden = false;
+  requestForm.reset();
+  requestForm.elements.updatedAt.value = item ? new Date(item.updatedAt).toLocaleString() : 'Not saved yet';
+  requestForm.elements.name.value = item?.name || '';
+  requestForm.elements.email.value = item?.email || '';
+  requestForm.elements.subject.value = item?.subject || '';
+  requestForm.elements.message.value = item?.message || '';
+  requestForm.elements.status.value = item?.status || 'new';
+  editorMode.textContent = item ? 'Edit request' : 'New request';
+  deleteButton.hidden = !item;
+  setStatus(editorStatus, '');
+  renderRequests();
+}
+
 async function loadItems() {
   try {
-    items = (await request()).items;
+    const contentResult = await request();
+    items = contentResult.items || [];
     renderItems();
+
+    const requestsResult = await fetch('/api/requests').then(res => res.json()).then(data => data.inquiries || []);
+    requests = requestsResult;
+    renderRequests();
   } catch (error) {
     setStatus(loginStatus, error.message);
-    sessionStorage.removeItem(tokenStorageKey);
-    sessionStorage.removeItem(usernameStorageKey);
-    sessionStorage.removeItem(passwordStorageKey);
+    sessionStorage.removeItem(adminTokenStorageKey);
+    sessionStorage.removeItem(adminUsernameStorageKey);
+    sessionStorage.removeItem(adminPasswordStorageKey);
     adminToken = '';
     adminUsername = '';
     adminPassword = '';
@@ -98,7 +138,6 @@ loginForm.addEventListener('submit', async (event) => {
   loginForm.querySelector('button').disabled = true;
   setStatus(loginStatus, '');
   try {
-    // Attempt JWT login first
     const response = await fetch(makeApiUrl('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -107,26 +146,25 @@ loginForm.addEventListener('submit', async (event) => {
     const result = await parseJson(response);
     if (response.ok && result.token && result.user?.role === 'admin') {
       adminToken = result.token;
-      sessionStorage.setItem(tokenStorageKey, adminToken);
+      sessionStorage.setItem(adminTokenStorageKey, adminToken);
       loginPanel.hidden = true;
       studio.hidden = false;
       await loadItems();
       return;
     }
 
-    // Fallback attempt with legacy credentials if standard login returns unauthenticated/unauthorized
     adminUsername = emailInput;
     adminPassword = passwordInput;
-    sessionStorage.setItem(usernameStorageKey, adminUsername);
-    sessionStorage.setItem(passwordStorageKey, adminPassword);
+    sessionStorage.setItem(adminUsernameStorageKey, adminUsername);
+    sessionStorage.setItem(adminPasswordStorageKey, adminPassword);
     loginPanel.hidden = true;
     studio.hidden = false;
     await loadItems();
   } catch (error) {
     setStatus(loginStatus, error.message || 'Login failed.');
-    sessionStorage.removeItem(tokenStorageKey);
-    sessionStorage.removeItem(usernameStorageKey);
-    sessionStorage.removeItem(passwordStorageKey);
+    sessionStorage.removeItem(adminTokenStorageKey);
+    sessionStorage.removeItem(adminUsernameStorageKey);
+    sessionStorage.removeItem(adminPasswordStorageKey);
     adminToken = '';
     adminUsername = '';
     adminPassword = '';
@@ -142,10 +180,10 @@ contentForm.addEventListener('submit', async (event) => {
   button.disabled = true;
   setStatus(editorStatus, '');
   try {
-    const result = await request(editingId ? `/${editingId}` : '', { method: editingId ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+    const result = await request(contentEditingId ? `/${contentEditingId}` : '', { method: contentEditingId ? 'PUT' : 'POST', body: JSON.stringify(payload) });
     const savedItem = result.item;
-    items = editingId ? items.map((item) => item.id === savedItem.id ? savedItem : item) : [savedItem, ...items];
-    openEditor(savedItem.id);
+    items = contentEditingId ? items.map((item) => item.id === savedItem.id ? savedItem : item) : [savedItem, ...items];
+    openContentEditor(savedItem.id);
     setStatus(editorStatus, 'Content saved.', false);
   } catch (error) {
     setStatus(editorStatus, error.message);
@@ -154,7 +192,7 @@ contentForm.addEventListener('submit', async (event) => {
   }
 });
 
-async function deleteItem(id) {
+async function deleteContentItem(id) {
   const item = items.find((entry) => entry.id === id);
   if (!item || !window.confirm(`Delete “${item.title}”?`)) return;
   const selectedDeleteButton = contentItems.querySelector(`[data-delete-id="${item.id}"]`);
@@ -162,8 +200,8 @@ async function deleteItem(id) {
   try {
     await request(`/${item.id}`, { method: 'DELETE' });
     items = items.filter((entry) => entry.id !== item.id);
-    if (editingId === item.id) {
-      editingId = null;
+    if (contentEditingId === item.id) {
+      contentEditingId = null;
       editorEmpty.hidden = false;
       contentForm.hidden = true;
     }
@@ -175,14 +213,72 @@ async function deleteItem(id) {
   }
 }
 
-deleteButton.addEventListener('click', () => deleteItem(editingId));
+requestForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const button = requestForm.querySelector('button[type="submit"]');
+  const payload = {
+    name: requestForm.elements.name.value,
+    email: requestForm.elements.email.value,
+    subject: requestForm.elements.subject.value,
+    message: requestForm.elements.message.value,
+    status: requestForm.elements.status.value
+  };
+  button.disabled = true;
+  setStatus(editorStatus, '');
+  try {
+    const result = await editingId ? `/${editingId}` : '', { method: editingId ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+    const savedItem = result.inquiry || result.item;
+    if (editingId) {
+      requests = requests.map((item) => item.id === savedItem.id ? savedItem : item);
+    } else {
+      requests.unshift(savedItem);
+    }
+    openRequestEditor(savedItem.id);
+    setStatus(editorStatus, 'Request saved.', false);
+  } catch (error) {
+    setStatus(editorStatus, error.message);
+  } finally {
+    button.disabled = false;
+  }
+});
 
-document.querySelector('#new-content').addEventListener('click', () => openEditor());
-document.querySelector('#cancel-edit').addEventListener('click', () => { editingId = null; renderItems(); editorEmpty.hidden = false; contentForm.hidden = true; });
+async function deleteRequestItem(id) {
+  const item = requests.find((entry) => entry.id === id);
+  if (!item || !window.confirm(`Delete request from ${item.name}?`)) return;
+  const selectedDeleteButton = requestItems.querySelector(`[data-delete-id="${item.id}"]`);
+  if (selectedDeleteButton) selectedDeleteButton.disabled = true;
+  try {
+    await request(`/${item.id}`, { method: 'DELETE' });
+    requests = requests.filter((entry) => entry.id !== item.id);
+    if (editingId === item.id) {
+      editingId = null;
+      editorEmpty.hidden = false;
+      requestForm.hidden = true;
+    }
+    renderRequests();
+  } catch (error) {
+    setStatus(editorStatus, error.message);
+  } finally {
+    if (selectedDeleteButton) selectedDeleteButton.disabled = false;
+  }
+}
+
+deleteButton.addEventListener('click', () => deleteContentItem(contentEditingId));
+
+newRequestBtn.addEventListener('click', () => openRequestEditor());
+document.querySelector('#cancel-edit').addEventListener('click', () => {
+  contentEditingId = null;
+  editingId = null;
+  renderItems();
+  renderRequests();
+  editorEmpty.hidden = false;
+  contentForm.hidden = true;
+  requestForm.hidden = true;
+});
 document.querySelector('#logout').addEventListener('click', () => {
-  sessionStorage.removeItem(tokenStorageKey);
-  sessionStorage.removeItem(usernameStorageKey);
-  sessionStorage.removeItem(passwordStorageKey);
+  sessionStorage.removeItem(adminTokenStorageKey);
+  sessionStorage.removeItem(adminUsernameStorageKey);
+  sessionStorage.removeItem(adminPasswordStorageKey);
   window.location.reload();
 });
 

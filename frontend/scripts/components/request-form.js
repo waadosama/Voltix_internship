@@ -1,14 +1,14 @@
 import { apiUrl, parseJson } from '../lib/api.js';
 
-class IdeaContactForm extends HTMLElement {
+class IdeaRequestForm extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
-      <form class="contact-form" id="contact-form" novalidate>
+      <form class="contact-form" id="request-form" novalidate>
         <label><span>Name</span><input name="name" type="text" autocomplete="name" required /></label>
         <label><span>Email</span><input name="email" type="email" autocomplete="email" required /></label>
         <label class="form-subject"><span>Subject</span><input name="subject" type="text" required /></label>
         <label class="form-message"><span>Message</span><textarea name="message" rows="3" required></textarea></label>
-        <button class="button button-light" type="submit">Send request <span aria-hidden="true">↗</span></button>
+        <button class="button button-light" type="submit">Submit request <span aria-hidden="true">↗</span></button>
         <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
       </form>
     `;
@@ -48,16 +48,16 @@ class IdeaContactForm extends HTMLElement {
       }
 
       formStatus.classList.add('is-success');
-      formStatus.textContent = result.message || 'Thanks. Your inquiry has been received.';
+      formStatus.textContent = result.message || 'Thanks. Your request has been received.';
       form.reset();
     } catch (error) {
       formStatus.classList.add('is-error');
       formStatus.textContent = error.message || 'Something went wrong. Please try again.';
     } finally {
       submitButton.disabled = false;
-      submitButton.innerHTML = 'Send inquiry <span aria-hidden="true">↗</span>';
+      submitButton.innerHTML = 'Submit request <span aria-hidden="true">↗</span>';
     }
   }
 }
 
-customElements.define('idea-contact-form', IdeaContactForm);
+customElements.define('idea-request-form', IdeaRequestForm);

@@ -5,8 +5,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { connectDatabase } from './db.js';
 import { authRouter } from './routes/auth.js';
+import { chatRouter } from './routes/chat.js';
 import { contactRouter } from './routes/contact.js';
 import { contentRouter, publishedContentRouter } from './routes/content.js';
+import { requestsRouter } from './routes/requests.js';
 
 dotenv.config();
 
@@ -29,7 +31,9 @@ app.get('/api/health', (_request, response) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/chat', chatRouter);
 app.use('/api/contact', contactRouter);
+app.use('/api/requests', requestsRouter);
 app.use('/api/content', contentRouter);
 app.use('/api/published-content', publishedContentRouter);
 
