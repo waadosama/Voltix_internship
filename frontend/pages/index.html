@@ -15,62 +15,32 @@
     <idea-header></idea-header>
 
     <main>
-      <section class="hero section-pad">
-        <div class="hero-copy reveal">
-          <p class="eyebrow"><span class="eyebrow-dot"></span> Independent creative company</p>
-          <h1>Make the<br /><em>next move.</em></h1>
-          <p class="hero-intro">Idea House turns ambitious questions into clear identities, digital products, and experiences people remember.</p>
-          <a class="button button-dark" href="#work">Explore our work <span aria-hidden="true">↗</span></a>
+      <section class="shop section-pad scroll-load" id="shop">
+        <div class="shop-heading reveal">
+          <div>
+            <p class="eyebrow"><span class="eyebrow-dot"></span> 01 / The shop</p>
+            <h1>Pick your<br /><em>items.</em></h1>
+          </div>
+          <p class="shop-intro">Ready-to-buy packages from the studio. Add the items you need to your request, then send everything over at the end of the page.</p>
         </div>
-        <div class="hero-art reveal reveal-delay" aria-label="Abstract sculptural orange artwork">
-          <div class="art-label art-label-top">IH / 001<br />FORM FOLLOWS FEELING</div>
-          <div class="sun-shape"></div>
-          <div class="ribbon-shape"></div>
-          <div class="art-grid"></div>
-          <div class="art-label art-label-bottom">BUILT FOR<br />WHAT'S NEXT</div>
-        </div>
-        <div class="hero-aside reveal reveal-delay-2">
-          <span class="vertical-rule"></span>
-          <p>We are a small, senior team with a generous point of view.</p>
-          <a class="circle-link" href="#services" aria-label="Scroll to what we do">↓</a>
-        </div>
-      </section>
 
-      <section class="ticker" aria-label="Our approach">
-        <div class="ticker-track">
-          <span>Curiosity first</span><b>✳</b><span>Clarity always</span><b>✳</b><span>Built to last</span><b>✳</b><span>Curiosity first</span><b>✳</b><span>Clarity always</span><b>✳</b><span>Built to last</span><b>✳</b>
+        <div class="shop-toolbar reveal">
+          <div class="shop-filters" id="shop-filters" role="group" aria-label="Filter items by category"></div>
+          <div class="shop-cart" aria-live="polite">
+            <span id="cart-count">Your request is empty</span>
+            <strong id="cart-total">$0</strong>
+            <button class="text-button" id="cart-clear" type="button" hidden>Clear</button>
+            <a class="cart-request" id="cart-request" href="#contact" hidden>Request items <span aria-hidden="true">↗</span></a>
+          </div>
         </div>
-      </section>
 
-      <section class="services section-pad scroll-load" id="services">
-        <div class="section-heading reveal">
-          <p class="eyebrow">01 / What we do</p>
-          <h2>Good ideas deserve<br /><em>a strong home.</em></h2>
-        </div>
-        <div class="services-grid">
-          <idea-service-card number="01" title="Brand<br />identity" description="Positioning, naming, visual systems, and the confidence to show up distinctly."></idea-service-card>
-          <idea-service-card number="02" title="Digital<br />experiences" description="Websites and products that make complex things feel simple, useful, and alive." accent></idea-service-card>
-          <idea-service-card number="03" title="Creative<br />direction" description="Campaigns, content, and systems that give your next chapter a point of view."></idea-service-card>
-        </div>
-      </section>
-
-      <section class="work section-pad scroll-load" id="work">
-        <div class="work-heading reveal"><p class="eyebrow">02 / Selected work</p><a class="text-link" href="#contact">See all projects <span aria-hidden="true">↗</span></a></div>
-        <div class="work-grid">
-          <a class="project project-large reveal" href="#contact"><div class="project-image project-image-cobalt"><span class="project-wordmark">nōrth<br /><small>STUDIO</small></span><span class="project-year">2024</span></div><div class="project-meta"><strong>North Studio</strong><span>Brand identity / Digital</span></div></a>
-          <a class="project reveal reveal-delay" href="#contact"><div class="project-image project-image-photo"><span class="project-tag">A new ritual</span></div><div class="project-meta"><strong>Onda Objects</strong><span>Strategy / E-commerce</span></div></a>
-          <a class="project reveal" href="#contact"><div class="project-image project-image-lime"><span class="project-symbol">◒</span><span class="project-year">2023</span></div><div class="project-meta"><strong>Second Nature</strong><span>Campaign / Art direction</span></div></a>
-        </div>
+        <div class="product-grid" id="product-grid"></div>
+        <p class="shop-empty" id="shop-empty" hidden>No items in this category yet.</p>
       </section>
 
       <section class="managed-content section-pad scroll-load" id="managed-content" hidden>
-        <div class="section-heading reveal"><div><p class="eyebrow">03 / From the studio</p><h2>Fresh from<br /><em>the house.</em></h2></div></div>
+        <div class="section-heading reveal"><div><p class="eyebrow">02 / From the studio</p><h2>Fresh from<br /><em>the house.</em></h2></div></div>
         <div class="managed-content-grid" id="managed-content-grid"></div>
-      </section>
-
-      <section class="about section-pad scroll-load" id="about">
-        <div class="about-image reveal"><img src="https://images.unsplash.com/photo-1523726491678-bf852e717f6a?auto=format&fit=crop&w=1200&q=85" alt="Creative team collaborating around a table" /><span>IDEAS ARE<br />A TEAM SPORT.</span></div>
-        <div class="about-copy reveal reveal-delay"><p class="eyebrow">04 / The house rules</p><h2>Small by design.<br /><em>Big on intent.</em></h2><p>We believe the best work happens when smart people get close to the problem. So we stay small, work openly, and bring the right mix of thinkers and makers to every brief.</p><a class="text-link" href="#contact">More about Idea House <span aria-hidden="true">↗</span></a><div class="stats"><div><strong>12</strong><span>years making<br />things matter</span></div><div><strong>34</strong><span>brands moved<br />forward</span></div></div></div>
       </section>
 
       <section class="contact section-pad scroll-load" id="contact">
@@ -86,7 +56,6 @@
   <script type="module" src="/scripts/components/auth-modal.js"></script>
   <script type="module" src="/scripts/components/site-header.js"></script>
   <script type="module" src="/scripts/components/contact-form.js"></script>
-  <script type="module" src="/scripts/components/service-card.js"></script>
   <script type="module" src="/scripts/components/chatbot.js"></script>
   <script type="module" src="/scripts/pages/home.js"></script>
 </body>

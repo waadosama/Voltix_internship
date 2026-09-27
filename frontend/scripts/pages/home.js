@@ -1,5 +1,6 @@
 import { apiUrl, parseJson } from '../lib/api.js';
 import { escapeHtml } from '../lib/html.js';
+import { categories, findProduct, products } from '../data/products.js';
 
 const menuToggle = document.querySelector('.menu-toggle');
 const primaryNav = document.querySelector('.primary-nav');
@@ -15,6 +16,170 @@ primaryNav?.querySelectorAll('a').forEach((link) => {
     menuToggle?.setAttribute('aria-expanded', 'false');
   });
 });
+
+const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+const productGrid = document.querySelector('#product-grid');
+const shopEmpty = document.querySelector('#shop-empty');
+const shopFilters = document.querySelector('#shop-filters');
+const cartCount = document.querySelector('#cart-count');
+const cartTotal = document.querySelector('#cart-total');
+const cartClear = document.querySelector('#cart-clear');
+const cartRequest = document.querySelector('#cart-request');
+
+const cart = new Map();
+let activeCategory = categories[0];
+
+function mediaHtml(product) {
+  if (product.image) {
+    return `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" loading="lazy" />`;
+  }
+  return `<span class="product-glyph" aria-hidden="true">${escapeHtml(product.glyph || '✳')}</span>`;
+}
+
+function controlsHtml(product) {
+  const quantity = cart.get(product.id) || 0;
+  if (!quantity) {
+    return `<button class="product-add" type="button" data-add="${escapeHtml(product.id)}">Add to request <span aria-hidden="true">+</span></button>`;
+  }
+  return `
+    <div class="product-qty">
+      <button type="button" data-step="-1" data-id="${escapeHtml(product.id)}" aria-label="Remove one ${escapeHtml(product.name)}">−</button>
+      <span>${quantity}</span>
+      <button type="button" data-step="1" data-id="${escapeHtml(product.id)}" aria-label="Add one ${escapeHtml(product.name)}">+</button>
+    </div>`;
+}
+
+function productCardHtml(product) {
+  const tone = product.image ? 'photo' : (product.tone || 'cobalt');
+  return `
+    <article class="product-card reveal" data-product-id="${escapeHtml(product.id)}" data-category="${escapeHtml(product.category)}">
+      <div class="product-media product-media--${escapeHtml(tone)}">
+        ${product.badge ? `<span class="product-badge">${escapeHtml(product.badge)}</span>` : ''}
+        ${mediaHtml(product)}
+      </div>
+      <div class="product-body">
+        <p class="product-category">${escapeHtml(product.category)}</p>
+        <h3>${escapeHtml(product.name)}</h3>
+        <p class="product-blurb">${escapeHtml(product.blurb)}</p>
+        <div class="product-footer">
+          <span class="product-price">${currency.format(product.price)}</span>
+          <div class="product-controls" data-controls="${escapeHtml(product.id)}">${controlsHtml(product)}</div>
+        </div>
+      </div>
+    </article>`;
+}
+
+function cartEntries() {
+  return [...cart.entries()]
+    .map(([id, quantity]) => ({ product: findProduct(id), quantity }))
+    .filter((entry) => entry.product);
+}
+
+function cartTotalValue() {
+  return cartEntries().reduce((sum, entry) => sum + entry.product.price * entry.quantity, 0);
+}
+
+function renderCart() {
+  const count = cartEntries().reduce((sum, entry) => sum + entry.quantity, 0);
+  cartCount.textContent = count ? `${count} ${count === 1 ? 'item' : 'items'} in your request` : 'Your request is empty';
+  cartTotal.textContent = currency.format(cartTotalValue());
+  cartClear.hidden = !count;
+  cartRequest.hidden = !count;
+}
+
+function renderControls(id) {
+  const product = findProduct(id);
+  const holder = productGrid?.querySelector(`[data-controls="${id}"]`);
+  if (product && holder) holder.innerHTML = controlsHtml(product);
+}
+
+function renderFilters() {
+  if (!shopFilters) return;
+  shopFilters.innerHTML = categories.map((category) => `
+    <button class="shop-filter${category === activeCategory ? ' is-active' : ''}" type="button" data-category="${escapeHtml(category)}" aria-pressed="${category === activeCategory}">${escapeHtml(category)}</button>
+  `).join('');
+}
+
+function applyFilter() {
+  if (!productGrid) return;
+  const showEverything = activeCategory === categories[0];
+  let visible = 0;
+  productGrid.querySelectorAll('.product-card').forEach((card) => {
+    const matches = showEverything || card.dataset.category === activeCategory;
+    card.hidden = !matches;
+    if (matches) visible += 1;
+  });
+  if (shopEmpty) shopEmpty.hidden = visible > 0;
+}
+
+function renderShop() {
+  if (!productGrid) return;
+  productGrid.innerHTML = products.map(productCardHtml).join('');
+  renderFilters();
+  applyFilter();
+}
+
+function fillRequestForm() {
+  const form = document.querySelector('#contact-form');
+  if (!form || !cart.size) return;
+  const lines = cartEntries().map((entry) => `- ${entry.quantity} × ${entry.product.name} — ${currency.format(entry.product.price * entry.quantity)}`);
+  form.elements.subject.value = 'Item request';
+  form.elements.message.value = [
+    'Hi Idea House,',
+    '',
+    'I would like to request these items:',
+    ...lines,
+    '',
+    `Total: ${currency.format(cartTotalValue())}`,
+    '',
+    'Thanks!'
+  ].join('\n');
+}
+
+renderShop();
+renderCart();
+
+shopFilters?.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-category]');
+  if (!button) return;
+  activeCategory = button.dataset.category;
+  shopFilters.querySelectorAll('.shop-filter').forEach((chip) => {
+    const isActive = chip.dataset.category === activeCategory;
+    chip.classList.toggle('is-active', isActive);
+    chip.setAttribute('aria-pressed', String(isActive));
+  });
+  applyFilter();
+});
+
+productGrid?.addEventListener('click', (event) => {
+  const addButton = event.target.closest('[data-add]');
+  if (addButton) {
+    const id = addButton.dataset.add;
+    cart.set(id, (cart.get(id) || 0) + 1);
+    renderControls(id);
+    renderCart();
+    return;
+  }
+
+  const stepButton = event.target.closest('[data-step]');
+  if (!stepButton) return;
+  const id = stepButton.dataset.id;
+  const nextQuantity = (cart.get(id) || 0) + Number(stepButton.dataset.step);
+  if (nextQuantity > 0) cart.set(id, nextQuantity);
+  else cart.delete(id);
+  renderControls(id);
+  renderCart();
+});
+
+cartClear?.addEventListener('click', () => {
+  const selectedIds = [...cart.keys()];
+  cart.clear();
+  selectedIds.forEach(renderControls);
+  renderCart();
+});
+
+cartRequest?.addEventListener('click', fillRequestForm);
 
 const revealObserver = new IntersectionObserver((entries, observer) => {
   entries.forEach((entry) => {
@@ -70,4 +235,3 @@ if (new URLSearchParams(window.location.search).has('signin')) {
   });
   window.setTimeout(() => window.IdeaClientAuth?.open('login'), 0);
 }
-
