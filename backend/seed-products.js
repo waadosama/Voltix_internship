@@ -1,24 +1,7 @@
-/**
- * Shop catalogue for the main page.
- *
- * Field order matches the product card layout in `scripts/pages/home.js`:
- *
- *   id       stable key used by the request cart
- *   name     card heading
- *   category one of `categories`, also used by the shop filters
- *   price    whole US dollars, no symbol (formatted at render time)
- *   blurb    one-sentence card copy
- *   tone     colour block behind the glyph (.product-media--<tone>)
- *   glyph    character drawn on the colour block
- *   image    photo URL; replaces the block and glyph when present
- *   badge    optional ribbon label, rendered only when set
- */
-
 const UNSPLASH_PARAMS = '?auto=format&fit=crop&w=1000&q=85';
-
 const photo = (id) => `https://images.unsplash.com/photo-${id}${UNSPLASH_PARAMS}`;
 
-export const products = [
+export const seedProducts = [
   {
     id: 'brand-starter-kit',
     name: 'Brand Starter Kit',
@@ -102,11 +85,3 @@ export const products = [
     glyph: '✦'
   }
 ];
-
-/** Shop filters, in catalogue order, starting with the "show everything" option. */
-export const categories = ['All', ...new Set(products.map((product) => product.category))];
-
-/** Look up one catalogue entry by its id. */
-export function findProduct(id) {
-  return products.find((product) => product.id === id);
-}

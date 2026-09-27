@@ -1,21 +1,9 @@
 import { apiUrl, parseJson } from '../lib/api.js';
 import { escapeHtml } from '../lib/html.js';
-import { categories, findProduct, products } from '../data/products.js';
 
 const menuToggle = document.querySelector('.menu-toggle');
 const primaryNav = document.querySelector('.primary-nav');
-
-menuToggle?.addEventListener('click', () => {
-  const isOpen = primaryNav.classList.toggle('is-open');
-  menuToggle.setAttribute('aria-expanded', String(isOpen));
-});
-
-primaryNav?.querySelectorAll('a').forEach((link) => {
-  link.addEventListener('click', () => {
-    primaryNav.classList.remove('is-open');
-    menuToggle?.setAttribute('aria-expanded', 'false');
-  });
-});
+const searchInput = document.querySelector('#shop-search');
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
@@ -28,7 +16,22 @@ const cartClear = document.querySelector('#cart-clear');
 const cartRequest = document.querySelector('#cart-request');
 
 const cart = new Map();
+let visibleProducts = [];
+let categories = ['All'];
 let activeCategory = categories[0];
+let searchDebounce = null;
+
+menuToggle?.addEventListener('click', () => {
+  const isOpen = primaryNav.classList.toggle('is-open');
+  menuToggle.setAttribute('aria-expanded', String(isOpen));
+});
+
+primaryNav?.querySelectorAll('a').forEach((link) => {
+  link.addEventListener('click', () => {
+    primaryNav.classList.remove('is-open');
+    menuToggle?.setAttribute('aria-expanded', 'false');
+  });
+});
 
 function mediaHtml(product) {
   if (product.image) {
@@ -76,6 +79,10 @@ function cartEntries() {
     .filter((entry) => entry.product);
 }
 
+function findProduct(id) {
+  return visibleProducts.find((product) => product.id === id);
+}
+
 function cartTotalValue() {
   return cartEntries().reduce((sum, entry) => sum + entry.product.price * entry.quantity, 0);
 }
@@ -115,9 +122,45 @@ function applyFilter() {
 
 function renderShop() {
   if (!productGrid) return;
-  productGrid.innerHTML = products.map(productCardHtml).join('');
+  productGrid.innerHTML = visibleProducts.map(productCardHtml).join('');
   renderFilters();
   applyFilter();
+}
+
+async function loadCatalogue() {
+  try {
+    const response = await fetch(apiUrl('/api/products'));
+    if (!response.ok) throw new Error(response.status);
+    const { products: items = [] } = await parseJson(response);
+    visibleProducts = items;
+    categories = ['All', ...new Set(items.map((product) => product.category))];
+    activeCategory = categories[0];
+  } catch {
+    visibleProducts = [];
+    categories = ['All'];
+    activeCategory = categories[0];
+  }
+
+  renderShop();
+}
+
+async function loadProducts() {
+  const query = searchInput?.value.trim() || '';
+  const params = new URLSearchParams();
+  if (query) params.set('q', query);
+  if (activeCategory !== categories[0]) params.set('category', activeCategory);
+  const url = `${apiUrl('/api/products')}${params ? '?' + params : ''}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(response.status);
+    const { products: items = [] } = await parseJson(response);
+    visibleProducts = items;
+  } catch {
+    visibleProducts = [];
+  }
+
+  renderShop();
 }
 
 function fillRequestForm() {
@@ -137,8 +180,10 @@ function fillRequestForm() {
   ].join('\n');
 }
 
-renderShop();
-renderCart();
+searchInput?.addEventListener('input', () => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(loadProducts, 220);
+});
 
 shopFilters?.addEventListener('click', (event) => {
   const button = event.target.closest('[data-category]');
@@ -149,8 +194,10 @@ shopFilters?.addEventListener('click', (event) => {
     chip.classList.toggle('is-active', isActive);
     chip.setAttribute('aria-pressed', String(isActive));
   });
-  applyFilter();
+  loadProducts();
 });
+
+loadCatalogue().then(renderCart);
 
 productGrid?.addEventListener('click', (event) => {
   const addButton = event.target.closest('[data-add]');

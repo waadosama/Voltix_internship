@@ -9,6 +9,9 @@ import { chatRouter } from './routes/chat.js';
 import { contactRouter } from './routes/contact.js';
 import { contentRouter, publishedContentRouter } from './routes/content.js';
 import { requestsRouter } from './routes/requests.js';
+import { productsRouter } from './routes/products.js';
+import { Product } from './models/product.js';
+import { seedProducts } from './seed-products.js';
 
 dotenv.config();
 
@@ -36,6 +39,7 @@ app.use('/api/contact', contactRouter);
 app.use('/api/requests', requestsRouter);
 app.use('/api/content', contentRouter);
 app.use('/api/published-content', publishedContentRouter);
+app.use('/api/products', productsRouter);
 
 app.get(['/admin', '/admin/'], (_request, response) => {
   response.sendFile(path.join(frontendPagesDirectory, 'admin.html'));
@@ -54,6 +58,10 @@ app.use((request, response, next) => {
 async function start() {
   try {
     await connectDatabase(mongoUri);
+
+    if (await Product.countDocuments() === 0) {
+      await Product.insertMany(seedProducts);
+    }
 
     console.log(`Connected to MongoDB at ${mongoUri}`);
 

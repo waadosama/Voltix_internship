@@ -43,6 +43,11 @@ h1, h2, h3, p { margin-top: 0; } h1, h2 { font-size: clamp(52px, 7vw, 104px); le
 .shop-cart strong { font-size: 13px; letter-spacing: -.02em; }
 .cart-request { background: var(--ink); color: var(--paper); font-weight: 800; padding: 12px 15px; transition: transform .2s ease; }
 .cart-request:hover { transform: translateY(-3px); }
+.shop-search { position: relative; }
+.shop-search-input { background: var(--paper); border: 1px solid var(--line); color: var(--ink); font: 500 12px var(--sans); padding: 10px 12px 10px 32px; border-radius: 2px; width: 220px; transition: border-color .2s ease, box-shadow .2s ease; }
+.shop-search-input::placeholder { color: rgba(24,24,24,.4); }
+.shop-search-input:focus { outline: 0; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(24,24,24,.08); }
+.shop-search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: rgba(24,24,24,.4); pointer-events: none; }
 .product-grid { display: grid; gap: 50px 24px; grid-template-columns: repeat(3, 1fr); padding-top: 55px; }
 .product-card[hidden] { display: none; }
 .product-media { align-items: center; aspect-ratio: 4 / 3; display: flex; justify-content: center; overflow: hidden; position: relative; }

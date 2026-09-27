@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Inquiry } from '../models/inquiry.js';
+import { Inquiry } from '../models/contact.js';
 import { optionalAuth } from '../middleware/auth.js';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

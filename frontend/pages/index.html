@@ -26,6 +26,11 @@
 
         <div class="shop-toolbar reveal">
           <div class="shop-filters" id="shop-filters" role="group" aria-label="Filter items by category"></div>
+          <div class="shop-search">
+            <svg class="shop-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <label for="shop-search" class="sr-only">Search items</label>
+            <input id="shop-search" class="shop-search-input" type="search" placeholder="Search items…" autocomplete="off" />
+          </div>
           <div class="shop-cart" aria-live="polite">
             <span id="cart-count">Your request is empty</span>
             <strong id="cart-total">$0</strong>
@@ -35,7 +40,7 @@
         </div>
 
         <div class="product-grid" id="product-grid"></div>
-        <p class="shop-empty" id="shop-empty" hidden>No items in this category yet.</p>
+        <p class="shop-empty" id="shop-empty" hidden>No items match your search.</p>
       </section>
 
       <section class="managed-content section-pad scroll-load" id="managed-content" hidden>
