@@ -155,7 +155,7 @@ requestForm.addEventListener('submit', async (event) => {
   button.disabled = true;
   setStatus(editorStatus, '');
   try {
-    const result = await editingId ? `/${editingId}` : '', { method: editingId ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+    const result = await request(editingId ? `/${editingId}` : '', { method: editingId ? 'PUT' : 'POST', body: JSON.stringify(payload) });
     const savedItem = result.inquiry || result.item;
     if (editingId) {
       requestItemsData = requestItemsData.map((item) => item.id === savedItem.id ? savedItem : item);

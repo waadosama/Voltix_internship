@@ -115,7 +115,16 @@ async function loadItems() {
     items = contentResult.items || [];
     renderItems();
 
-    const requestsResult = await fetch('/api/requests').then(res => res.json()).then(data => data.inquiries || []);
+    const requestsHeaders = { 'Content-Type': 'application/json' };
+    if (adminToken) { requestsHeaders['Authorization'] = `Bearer ${adminToken}`; }
+    if (adminUsername && adminPassword) {
+      requestsHeaders['X-Admin-Username'] = adminUsername;
+      requestsHeaders['X-Admin-Password'] = adminPassword;
+    }
+    const requestsResponse = await fetch(makeApiUrl('/api/requests'), { headers: requestsHeaders });
+    const requestsData = await parseJson(requestsResponse);
+    if (!requestsResponse.ok) throw new Error(requestsData.message || 'The request could not be completed.');
+    const requestsResult = requestsData.inquiries || [];
     requests = requestsResult;
     renderRequests();
   } catch (error) {
@@ -226,7 +235,7 @@ requestForm.addEventListener('submit', async (event) => {
   button.disabled = true;
   setStatus(editorStatus, '');
   try {
-    const result = await editingId ? `/${editingId}` : '', { method: editingId ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+    const result = await request(editingId ? `/${editingId}` : '', { method: editingId ? 'PUT' : 'POST', body: JSON.stringify(payload) });
     const savedItem = result.inquiry || result.item;
     if (editingId) {
       requests = requests.map((item) => item.id === savedItem.id ? savedItem : item);

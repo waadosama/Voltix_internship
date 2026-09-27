@@ -125,6 +125,7 @@ function renderShop() {
   productGrid.innerHTML = visibleProducts.map(productCardHtml).join('');
   renderFilters();
   applyFilter();
+  productGrid.querySelectorAll('.reveal').forEach((element) => revealObserver.observe(element));
 }
 
 async function loadCatalogue() {

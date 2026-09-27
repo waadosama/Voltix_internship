@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Inquiry } from '../models/inquiry.js';
+import { Inquiry } from '../models/contact.js';
 import { requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
