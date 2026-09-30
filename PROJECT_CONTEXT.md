@@ -99,7 +99,7 @@ idea-house/
 ├── verify_ui.py              # Playwright smoke test (opens auth modal)
 ├── .gitignore                # node_modules/, .env, *.log
 ├── package-lock.json         # leftover "voltix" lock file at repo root (no root package.json)
-└── .env                      # gitignored; holds ADMIN_USERNAME, ADMIN_PASSWORD, JWT_SECRET, MONGODB_URI
+└── .env                      # gitignored; holds ADMIN_*, EMPLOYEE_*, JWT_SECRET, MONGODB_URI
 ```
 
 ## 4. Architecture
@@ -148,7 +148,7 @@ All JSON. CORS enabled (`app.use(cors())`). "Permission" is enforced by `require
 |---|---|---|---|
 | GET | `/api/health` | none | `{ status: 'ok', service: 'idea-house-api' }` |
 | POST | `/api/auth/register` | none | Client account registration (role is always forced to `client`) |
-| POST | `/api/auth/login` | none | Login; env admin fallback (`ADMIN_USERNAME`/`ADMIN_PASSWORD`); returns `user.permissions` |
+| POST | `/api/auth/login` | none | Login; env fallbacks (`ADMIN_*` → `admin`, `EMPLOYEE_*` → `employee`); returns `user.permissions` |
 | GET | `/api/auth/me` | `profile:read` | Current user profile + role + permissions |
 | PATCH | `/api/auth/me` | `profile:update` | Update profile (name, phone, company, bio, password) |
 | GET/POST | `/api/chat/messages` | `chat:use` | List messages; send a message (mock bot replies) |
@@ -191,6 +191,7 @@ Base URL logic (`frontend/scripts/lib/api.js`): if `hostname` is `localhost` or 
 * **Passwords** are hashed with `hashPassword` / `verifyPassword` (crypto.pbkdf2Sync + salt).
 * **Client auth** (browser): token stored in localStorage (`idea-house-client-token`), user in `idea-house-client-user`; `window.IdeaClientAuth` exposes `open('login'|'register')`, `getToken()`, `getUser()`, `logout()`.
 * **Legacy admin headers**: `matchesConfiguredAdmin()` still accepts `X-Admin-Username` / `X-Admin-Password` and is treated as a full `admin` actor inside `requirePermission()`.
+* **Environment accounts**: logging in with `ADMIN_USERNAME`/`ADMIN_PASSWORD` yields an `admin` token, `EMPLOYEE_USERNAME`/`EMPLOYEE_PASSWORD` (both in `.env`) yields an `employee` token. Neither account exists in MongoDB — `resolveActor()` recognises their pseudo ids (`admin-env-id`, `employee-env-id`) and pins the role, so the environment employee can never hold more than the `employee` permission set.
 * **Roles** live in `backend/rbac/permissions.js` (pure module):
   * `admin` — every permission (`content:*`, `requests:*`, `products:*`, `users:*`, profile, chat).
   * `employee` — `content:read`, `content:update` (own records only), `requests:read`, `requests:update`, profile, chat. **No** create/delete, **no** shop catalogue management, **no** user administration.
@@ -250,11 +251,14 @@ npm test        # node --test: permission-catalogue unit tests + end-to-end RBAC
 **Environment (.env, gitignored):**
 ```
 MONGODB_URI=mongodb://127.0.0.1:27017/voltix
-ADMIN_USERNAME=...
+ADMIN_USERNAME=...            # environment admin (role: admin)
 ADMIN_PASSWORD=...
+EMPLOYEE_USERNAME=...         # environment employee (role: employee) — login to /admin as a regular employee
+EMPLOYEE_PASSWORD=...
 JWT_SECRET=...
 PORT=3000
 ```
+Both env accounts exist only in `.env` (not in MongoDB), so `GET /api/auth/me` answers from the token and `PATCH /api/auth/me` is rejected with `400`. The environment employee is always resolved to the `employee` role, so its token can never carry more than the employee permission set. Database accounts (e.g. `demo-employee@ideahouse.local`) still log in normally.
 
 **Frontend dev server only:**
 ```bash

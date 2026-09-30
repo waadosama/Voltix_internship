@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { Content } from '../models/content.js';
 import { User } from '../models/user.js';
 import { canModifyRecord, ENV_ADMIN_ID, hasPermission, requirePermission } from '../middleware/rbac.js';
-import { permissionsForRole } from '../rbac/permissions.js';
+import { permissionsForRole } from '../routes/permissions.js';
 
 const UPDATABLE_FIELDS = ['title', 'slug', 'body', 'status'];
 

@@ -89,9 +89,9 @@ export function extractToken(request) {
   return null;
 }
 
-export function matchesConfiguredAdmin(username, password) {
-  const configuredUsername = process.env.ADMIN_USERNAME?.trim().toLowerCase();
-  const configuredPassword = process.env.ADMIN_PASSWORD?.trim();
+export function matchesConfiguredCredentials(username, password, usernameVar, passwordVar) {
+  const configuredUsername = process.env[usernameVar]?.trim().toLowerCase();
+  const configuredPassword = process.env[passwordVar]?.trim();
   const suppliedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
   const suppliedPassword = typeof password === 'string' ? password.trim() : '';
 
@@ -101,6 +101,19 @@ export function matchesConfiguredAdmin(username, password) {
     suppliedUsername === configuredUsername &&
     suppliedPassword === configuredPassword
   );
+}
+
+export function matchesConfiguredAdmin(username, password) {
+  return matchesConfiguredCredentials(username, password, 'ADMIN_USERNAME', 'ADMIN_PASSWORD');
+}
+
+/**
+ * Environment-only employee account (`EMPLOYEE_USERNAME` / `EMPLOYEE_PASSWORD`
+ * in `.env`) — mirrors the env admin fallback, but is resolved to the
+ * `employee` role, so it only ever gets `employee` permissions.
+ */
+export function matchesConfiguredEmployee(username, password) {
+  return matchesConfiguredCredentials(username, password, 'EMPLOYEE_USERNAME', 'EMPLOYEE_PASSWORD');
 }
 
 export function optionalAuth(request, response, next) {

@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { User } from '../models/user.js';
 import { hashPassword } from '../middleware/auth.js';
 import { ENV_ADMIN_ID, requirePermission } from '../middleware/rbac.js';
-import { isKnownRole, permissionsForRole, ROLES, ROLE_ADMIN, ROLE_PERMISSIONS } from '../rbac/permissions.js';
+import { isKnownRole, permissionsForRole, ROLES, ROLE_ADMIN, ROLE_PERMISSIONS } from '../routes/permissions.js';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

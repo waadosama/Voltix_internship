@@ -22,11 +22,20 @@ import { User } from '../models/user.js';
 import {
   missingPermissions,
   permissionsForRole,
-  ROLE_ADMIN
+  ROLE_ADMIN,
+  ROLE_EMPLOYEE
 } from '../routes/permissions.js';
 
 /** Pseudo id used for the env-only admin account (not stored in the DB). */
 export const ENV_ADMIN_ID = 'admin-env-id';
+/** Pseudo id used for the env-only employee account (not stored in the DB). */
+export const ENV_EMPLOYEE_ID = 'employee-env-id';
+
+function actorSource(actor) {
+  if (actor.id === ENV_ADMIN_ID) return 'env-admin';
+  if (actor.id === ENV_EMPLOYEE_ID) return 'env-employee';
+  return 'token';
+}
 
 function headerAdminActor(request) {
   const username = request.get('X-Admin-Username');
@@ -53,6 +62,12 @@ export async function resolveActor(request) {
 
   if (decoded.id === ENV_ADMIN_ID) {
     return { ...decoded, role: ROLE_ADMIN };
+  }
+
+  if (decoded.id === ENV_EMPLOYEE_ID) {
+    // Environment employee: always resolved to the employee role, so it can
+    // never be granted more than `employee` permissions.
+    return { ...decoded, role: ROLE_EMPLOYEE };
   }
 
   if (!decoded.id) return null;
@@ -86,7 +101,7 @@ export function requirePermission(...required) {
       const missing = missingPermissions(actor.role, required);
 
       request.user = actor;
-      request.rbac = { role: actor.role, permissions, source: actor.id === ENV_ADMIN_ID ? 'env-admin' : 'token' };
+      request.rbac = { role: actor.role, permissions, source: actorSource(actor) };
 
       if (missing.length > 0) {
         return response.status(403).json({
@@ -129,7 +144,7 @@ export async function attachOptionalActor(request, _response, next) {
         request.rbac = {
           role: actor.role,
           permissions: permissionsForRole(actor.role),
-          source: actor.id === ENV_ADMIN_ID ? 'env-admin' : 'token'
+          source: actorSource(actor)
         };
       }
     }

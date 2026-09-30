@@ -13,7 +13,7 @@ import {
   ROLE_ADMIN,
   ROLE_CLIENT,
   ROLE_EMPLOYEE
-} from '../rbac/permissions.js';
+} from '../routes/permissions.js';
 import { canModifyRecord, ownsRecord } from '../middleware/rbac.js';
 
 test('every declared role has a permission list', () => {

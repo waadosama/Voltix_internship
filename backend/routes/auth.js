@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { User } from '../models/user.js';
-import { hashPassword, matchesConfiguredAdmin, verifyPassword, signToken } from '../middleware/auth.js';
-import { requirePermission } from '../middleware/rbac.js';
-import { permissionsForRole } from '../rbac/permissions.js';
+import { hashPassword, matchesConfiguredAdmin, matchesConfiguredEmployee, verifyPassword, signToken } from '../middleware/auth.js';
+import { ENV_ADMIN_ID, ENV_EMPLOYEE_ID, requirePermission } from '../middleware/rbac.js';
+import { permissionsForRole } from '../routes/permissions.js';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -82,15 +82,33 @@ authRouter.post('/login', async (request, response) => {
   // Check env admin fallback
   if (matchesConfiguredAdmin(email, password)) {
     const adminEmail = process.env.ADMIN_USERNAME.trim();
-    const token = signToken({ id: 'admin-env-id', email: adminEmail, role: 'admin', name: 'Admin' });
+    const token = signToken({ id: ENV_ADMIN_ID, email: adminEmail, role: 'admin', name: 'Admin' });
     return response.json({
       token,
       user: {
-        id: 'admin-env-id',
+        id: ENV_ADMIN_ID,
         email: adminEmail,
         name: 'Admin',
         role: 'admin',
         permissions: permissionsForRole('admin')
+      }
+    });
+  }
+
+  // Check env employee fallback (EMPLOYEE_USERNAME / EMPLOYEE_PASSWORD in .env).
+  // The account is not stored in MongoDB; its role is always `employee`, so the
+  // token can never carry more than the employee permission set.
+  if (matchesConfiguredEmployee(email, password)) {
+    const employeeEmail = process.env.EMPLOYEE_USERNAME.trim();
+    const token = signToken({ id: ENV_EMPLOYEE_ID, email: employeeEmail, role: 'employee', name: 'Employee' });
+    return response.json({
+      token,
+      user: {
+        id: ENV_EMPLOYEE_ID,
+        email: employeeEmail,
+        name: 'Employee',
+        role: 'employee',
+        permissions: permissionsForRole('employee')
       }
     });
   }
@@ -115,7 +133,7 @@ authRouter.post('/login', async (request, response) => {
 
 authRouter.get('/me', requirePermission('profile:read'), async (request, response) => {
   try {
-    if (request.user.id === 'admin-env-id') {
+    if (request.user.id === ENV_ADMIN_ID || request.user.id === ENV_EMPLOYEE_ID) {
       return response.json({
         user: { ...request.user, permissions: permissionsForRole(request.user.role) }
       });
@@ -135,9 +153,9 @@ authRouter.get('/me', requirePermission('profile:read'), async (request, respons
 
 authRouter.patch('/me', requirePermission('profile:update'), async (request, response) => {
   try {
-    if (request.user.id === 'admin-env-id') {
+    if (request.user.id === ENV_ADMIN_ID || request.user.id === ENV_EMPLOYEE_ID) {
       return response.status(400).json({
-        message: 'This environment admin account is not stored in the database, so the profile cannot be updated.'
+        message: 'This environment account is not stored in the database, so the profile cannot be updated.'
       });
     }
 

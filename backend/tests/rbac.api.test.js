@@ -389,3 +389,41 @@ test('employees can work customer requests, clients cannot see them', async (t) 
   const clientList = await api('/api/requests', { token: tokens.client });
   assert.equal(clientList.status, 403);
 });
+
+test('the .env employee account signs in with employee permissions only', async (t) => {
+  if (!ready) return t.skip('MongoDB unavailable');
+  if (!process.env.EMPLOYEE_USERNAME || !process.env.EMPLOYEE_PASSWORD) {
+    return t.skip('EMPLOYEE_USERNAME / EMPLOYEE_PASSWORD are not configured in .env');
+  }
+
+  const login = await api('/api/auth/login', {
+    method: 'POST',
+    body: { email: process.env.EMPLOYEE_USERNAME, password: process.env.EMPLOYEE_PASSWORD }
+  });
+  assert.equal(login.status, 200);
+  assert.equal(login.data.user.role, 'employee');
+  assert.deepEqual(
+    [...login.data.user.permissions].sort(),
+    ['chat:use', 'content:read', 'content:update', 'profile:read', 'profile:update', 'requests:read', 'requests:update']
+  );
+
+  const envEmployeeToken = login.data.token;
+
+  // The profile endpoint answers for the environment account...
+  assert.equal((await api('/api/auth/me', { token: envEmployeeToken })).status, 200);
+
+  // ...but the account never gains more than employee permissions
+  const create = await api('/api/content', {
+    method: 'POST',
+    token: envEmployeeToken,
+    body: { title: 'Env employee', slug: `env-employee-${stamp}`, body: 'nope' }
+  });
+  assert.equal(create.status, 403);
+  assert.ok(create.data.missingPermissions.includes('content:create'));
+  assert.equal((await api('/api/users', { token: envEmployeeToken })).status, 403);
+  assert.equal((await api('/api/products?scope=all', { token: envEmployeeToken })).status, 403);
+
+  // ...and it can do everything a regular employee may do
+  assert.equal((await api('/api/content', { token: envEmployeeToken })).status, 200);
+  assert.equal((await api('/api/requests', { token: envEmployeeToken })).status, 200);
+});
