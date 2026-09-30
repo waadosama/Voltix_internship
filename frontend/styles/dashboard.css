@@ -9,6 +9,8 @@
 .dashboard-summary dl > div { border-bottom: 1px solid var(--line); display: grid; gap: 8px; grid-template-columns: 110px 1fr; padding: 14px 0; }
 .dashboard-summary dt { font-family: var(--mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
 .dashboard-summary dd { font-size: 15px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.dashboard-summary dd#summary-permissions { display: flex; flex-wrap: wrap; gap: 6px; }
+.dashboard-summary .permission-chip { background: rgba(16, 16, 16, .04); border: 1px solid var(--line); border-radius: 999px; display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: .04em; padding: 4px 9px; text-transform: uppercase; }
 .dashboard-form { display: grid; gap: 18px 28px; grid-template-columns: 1fr 1fr; }
 .dashboard-form label { border-bottom: 1px solid var(--ink); display: flex; flex-direction: column; gap: 7px; padding-bottom: 8px; }
 .dashboard-form label span { font-family: var(--mono); font-size: 9px; text-transform: uppercase; }

@@ -1,67 +1,17 @@
-import cors from 'cors';
 import dotenv from 'dotenv';
-import express from 'express';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { createApp } from './app.js';
 import { connectDatabase } from './db.js';
-import { authRouter } from './routes/auth.js';
-import { chatRouter } from './routes/chat.js';
-import { contactRouter } from './routes/contact.js';
-import { contentRouter, publishedContentRouter } from './routes/content.js';
-import { requestsRouter } from './routes/requests.js';
-import { productsRouter } from './routes/products.js';
-import { Product } from './models/product.js';
-import { seedProducts } from './seed-products.js';
 
 dotenv.config();
 
-const app = express();
+const app = createApp();
 const port = process.env.PORT || 3000;
 const mongoUri =
   process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/voltix';
 
-const currentFile = fileURLToPath(import.meta.url);
-const currentDirectory = path.dirname(currentFile);
-const frontendDirectory = path.resolve(currentDirectory, '..', 'frontend');
-const frontendPagesDirectory = path.join(frontendDirectory, 'pages');
-
-app.use(cors());
-app.use(express.json());
-app.use(express.static(frontendDirectory));
-
-app.get('/api/health', (_request, response) => {
-  response.json({ status: 'ok', service: 'idea-house-api' });
-});
-
-app.use('/api/auth', authRouter);
-app.use('/api/chat', chatRouter);
-app.use('/api/contact', contactRouter);
-app.use('/api/requests', requestsRouter);
-app.use('/api/content', contentRouter);
-app.use('/api/published-content', publishedContentRouter);
-app.use('/api/products', productsRouter);
-
-app.get(['/admin', '/admin/'], (_request, response) => {
-  response.sendFile(path.join(frontendPagesDirectory, 'admin.html'));
-});
-
-app.get(['/dashboard', '/dashboard/'], (_request, response) => {
-  response.sendFile(path.join(frontendPagesDirectory, 'dashboard.html'));
-});
-
-app.use((request, response, next) => {
-  if (request.method !== 'GET') return next();
-
-  return response.sendFile(path.join(frontendPagesDirectory, 'index.html'));
-});
-
 async function start() {
   try {
     await connectDatabase(mongoUri);
-
-    if (await Product.countDocuments() === 0) {
-      await Product.insertMany(seedProducts);
-    }
 
     console.log(`Connected to MongoDB at ${mongoUri}`);
 

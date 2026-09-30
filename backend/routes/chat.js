@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ChatMessage } from '../models/chat-message.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/rbac.js';
 
 const router = Router();
 
@@ -41,7 +41,7 @@ function serializeUser(request) {
   return String(request.user?.id || request.user?.email || 'anonymous');
 }
 
-router.get('/messages', requireAuth, async (request, response) => {
+router.get('/messages', requirePermission('chat:use'), async (request, response) => {
   try {
     const documents = await ChatMessage.find({ userId: serializeUser(request) })
       .sort({ timestamp: 1, _id: 1 });
@@ -53,7 +53,7 @@ router.get('/messages', requireAuth, async (request, response) => {
   }
 });
 
-router.post('/messages', requireAuth, async (request, response) => {
+router.post('/messages', requirePermission('chat:use'), async (request, response) => {
   const text = asTrimmedString(request.body?.message);
   const sender = asTrimmedString(request.body?.sender) || 'user';
 

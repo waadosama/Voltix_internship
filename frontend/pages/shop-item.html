@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Idea House shop item - ready-to-buy packages from the studio." />
+  <title>Shop item - Idea House</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles/main.css" />
+</head>
+<body>
+  <div class="site-shell">
+    <idea-header></idea-header>
+
+    <main>
+      <section class="item-detail section-pad">
+        <p class="item-back"><a href="/#shop">← Back to the shop</a></p>
+
+        <p class="shop-empty" id="item-loading">Loading item…</p>
+        <p class="shop-empty" id="item-error" hidden></p>
+
+        <article class="item-layout" id="item-card" hidden>
+          <div class="item-media" id="item-media"></div>
+          <div class="item-body">
+            <p class="product-category" id="item-category"></p>
+            <h1 class="item-name" id="item-name"></h1>
+            <p class="item-blurb" id="item-blurb"></p>
+            <div class="product-footer item-footer">
+              <span class="product-price" id="item-price"></span>
+              <div class="product-controls" id="item-controls"></div>
+            </div>
+            <p class="item-hint">Add what you need here, then send it over from the request form.</p>
+            <a class="cart-request" id="item-go-request" href="/#contact" hidden>Request items <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>
+
+        <section class="related" id="related" hidden>
+          <div class="section-heading">
+            <p class="eyebrow">More in <span id="related-category"></span></p>
+          </div>
+          <div class="product-grid" id="related-grid"></div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="site-footer"><span>© 2026 Idea House Studio</span><span>New York · London · Everywhere</span><a href="#top">Back to top ↑</a></footer>
+  </div>
+  <idea-auth-modal></idea-auth-modal>
+  <idea-chatbot></idea-chatbot>
+  <script type="module" src="/scripts/components/auth-modal.js"></script>
+  <script type="module" src="/scripts/components/site-header.js"></script>
+  <script type="module" src="/scripts/components/chatbot.js"></script>
+  <script type="module" src="/scripts/pages/shop-item.js"></script>
+</body>
+</html>

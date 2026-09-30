@@ -129,28 +129,5 @@ export function requireAuth(request, response, next) {
   return next();
 }
 
-export function requireAdmin(request, response, next) {
-  const suppliedUsername = request.get('X-Admin-Username');
-  const suppliedPassword = request.get('X-Admin-Password');
-
-  if (matchesConfiguredAdmin(suppliedUsername, suppliedPassword)) {
-    request.user = { role: 'admin', email: process.env.ADMIN_USERNAME.trim(), name: 'Legacy Admin' };
-    return next();
-  }
-
-  return requireAuth(request, response, () => {
-    if (request.user?.role !== 'admin') {
-      return response.status(403).json({ message: 'Access denied. Admin role required.' });
-    }
-    return next();
-  });
-}
-
-export function requireClient(request, response, next) {
-  return requireAuth(request, response, () => {
-    if (request.user?.role !== 'client' && request.user?.role !== 'admin') {
-      return response.status(403).json({ message: 'Access denied. Client access required.' });
-    }
-    return next();
-  });
-}
+// NOTE: role checks moved to RBAC — use `requirePermission('<resource>:<action>')`
+// from `middleware/rbac.js` instead of role string comparisons here.

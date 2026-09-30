@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { Inquiry } from '../models/contact.js';
-import { requireAdmin } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/rbac.js';
 
 const router = Router();
 
-router.get('/', requireAdmin, async (_request, response) => {
+router.get('/', requirePermission('requests:read'), async (_request, response) => {
   try {
     const inquiries = await Inquiry.find().sort({ createdAt: -1 });
     return response.json({ inquiries });
@@ -14,7 +14,7 @@ router.get('/', requireAdmin, async (_request, response) => {
   }
 });
 
-router.put('/:id', requireAdmin, async (request, response) => {
+router.put('/:id', requirePermission('requests:update'), async (request, response) => {
   const { status } = request.body;
 
   if (!status || !['new', 'in-progress', 'resolved'].includes(status)) {

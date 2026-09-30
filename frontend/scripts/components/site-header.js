@@ -18,10 +18,10 @@ class IdeaHeader extends HTMLElement {
           <span class="sr-only">Toggle navigation</span>
         </button>
         <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation">
-          <a href="#shop">Shop items</a>
+          <a href="/#shop">Shop items</a>
           <a class="admin-link" href="/admin">Admin studio <span aria-hidden="true">↗</span></a>
           <span class="client-auth-nav" id="client-auth-nav"></span>
-          <a class="nav-cta" href="#contact">Start a request <span aria-hidden="true">↗</span></a>
+          <a class="nav-cta" href="/#contact">Start a request <span aria-hidden="true">↗</span></a>
         </nav>
       </header>
     `;

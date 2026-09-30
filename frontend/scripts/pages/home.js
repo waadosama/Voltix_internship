@@ -16,10 +16,34 @@ const cartClear = document.querySelector('#cart-clear');
 const cartRequest = document.querySelector('#cart-request');
 
 const cart = new Map();
+const CART_KEY = 'idea-house-cart';
 let visibleProducts = [];
 let categories = ['All'];
 let activeCategory = categories[0];
 let searchDebounce = null;
+
+function loadStoredCart() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(CART_KEY));
+    if (!stored || typeof stored !== 'object') return;
+    Object.entries(stored).forEach(([id, quantity]) => {
+      const qty = Number(quantity);
+      if (Number.isInteger(qty) && qty > 0) cart.set(id, qty);
+    });
+  } catch {
+    // Ignore corrupt or unavailable storage - the cart simply starts empty.
+  }
+}
+
+function saveStoredCart() {
+  try {
+    localStorage.setItem(CART_KEY, JSON.stringify(Object.fromEntries(cart)));
+  } catch {
+    // Storage unavailable - the cart stays in memory for this page only.
+  }
+}
+
+loadStoredCart();
 
 menuToggle?.addEventListener('click', () => {
   const isOpen = primaryNav.classList.toggle('is-open');
@@ -55,15 +79,18 @@ function controlsHtml(product) {
 
 function productCardHtml(product) {
   const tone = product.image ? 'photo' : (product.tone || 'cobalt');
+  const href = `/shop/${encodeURIComponent(product.id)}`;
   return `
     <article class="product-card reveal" data-product-id="${escapeHtml(product.id)}" data-category="${escapeHtml(product.category)}">
-      <div class="product-media product-media--${escapeHtml(tone)}">
-        ${product.badge ? `<span class="product-badge">${escapeHtml(product.badge)}</span>` : ''}
-        ${mediaHtml(product)}
-      </div>
+      <a class="product-link" href="${escapeHtml(href)}" aria-label="View ${escapeHtml(product.name)}">
+        <div class="product-media product-media--${escapeHtml(tone)}">
+          ${product.badge ? `<span class="product-badge">${escapeHtml(product.badge)}</span>` : ''}
+          ${mediaHtml(product)}
+        </div>
+      </a>
       <div class="product-body">
         <p class="product-category">${escapeHtml(product.category)}</p>
-        <h3>${escapeHtml(product.name)}</h3>
+        <h3><a class="product-link" href="${escapeHtml(href)}">${escapeHtml(product.name)}</a></h3>
         <p class="product-blurb">${escapeHtml(product.blurb)}</p>
         <div class="product-footer">
           <span class="product-price">${currency.format(product.price)}</span>
@@ -93,6 +120,7 @@ function renderCart() {
   cartTotal.textContent = currency.format(cartTotalValue());
   cartClear.hidden = !count;
   cartRequest.hidden = !count;
+  saveStoredCart();
 }
 
 function renderControls(id) {
@@ -198,7 +226,12 @@ shopFilters?.addEventListener('click', (event) => {
   loadProducts();
 });
 
-loadCatalogue().then(renderCart);
+loadCatalogue().then(() => {
+  renderCart();
+  // Arriving from a /shop/:id "Request items" link (or a #contact nav link)
+  // with a stocked cart should hand the customer a pre-filled request form.
+  if (location.hash === '#contact' && cartEntries().length) fillRequestForm();
+});
 
 productGrid?.addEventListener('click', (event) => {
   const addButton = event.target.closest('[data-add]');

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { User } from '../models/user.js';
-import { hashPassword, matchesConfiguredAdmin, verifyPassword, signToken, requireAuth } from '../middleware/auth.js';
+import { hashPassword, matchesConfiguredAdmin, verifyPassword, signToken } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/rbac.js';
+import { permissionsForRole } from '../rbac/permissions.js';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -14,6 +16,7 @@ function serializeUser(user) {
     name: user.name,
     email: user.email,
     role: user.role,
+    permissions: permissionsForRole(user.role),
     phone: user.phone || '',
     company: user.company || '',
     bio: user.bio || '',
@@ -82,7 +85,13 @@ authRouter.post('/login', async (request, response) => {
     const token = signToken({ id: 'admin-env-id', email: adminEmail, role: 'admin', name: 'Admin' });
     return response.json({
       token,
-      user: { id: 'admin-env-id', email: adminEmail, name: 'Admin', role: 'admin' }
+      user: {
+        id: 'admin-env-id',
+        email: adminEmail,
+        name: 'Admin',
+        role: 'admin',
+        permissions: permissionsForRole('admin')
+      }
     });
   }
 
@@ -104,10 +113,12 @@ authRouter.post('/login', async (request, response) => {
   }
 });
 
-authRouter.get('/me', requireAuth, async (request, response) => {
+authRouter.get('/me', requirePermission('profile:read'), async (request, response) => {
   try {
     if (request.user.id === 'admin-env-id') {
-      return response.json({ user: request.user });
+      return response.json({
+        user: { ...request.user, permissions: permissionsForRole(request.user.role) }
+      });
     }
 
     const user = await User.findById(request.user.id);
@@ -122,7 +133,7 @@ authRouter.get('/me', requireAuth, async (request, response) => {
   }
 });
 
-authRouter.patch('/me', requireAuth, async (request, response) => {
+authRouter.patch('/me', requirePermission('profile:update'), async (request, response) => {
   try {
     if (request.user.id === 'admin-env-id') {
       return response.status(400).json({

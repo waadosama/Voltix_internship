@@ -1,4 +1,5 @@
 import { apiUrl, parseJson } from '../lib/api.js';
+import { escapeHtml } from '../lib/html.js';
 import { clearClientSession, CLIENT_USER_KEY, getClientToken, notifyClientAuth } from '../lib/client-auth.js';
 
 const gate = document.querySelector('#dashboard-gate');
@@ -41,10 +42,25 @@ function displayValue(value) {
   return value && String(value).trim() ? value : '-';
 }
 
+function renderPermissions(user) {
+  const container = document.querySelector('#summary-permissions');
+  const permissions = Array.isArray(user.permissions) ? user.permissions : [];
+
+  if (!permissions.length) {
+    container.textContent = '-';
+    return;
+  }
+
+  container.innerHTML = permissions
+    .map((code) => `<span class="permission-chip">${escapeHtml(code)}</span>`)
+    .join('');
+}
+
 function renderUser(user) {
   document.querySelector('#summary-name').textContent = displayValue(user.name);
   document.querySelector('#summary-email').textContent = displayValue(user.email);
   document.querySelector('#summary-role').textContent = displayValue(user.role);
+  renderPermissions(user);
   document.querySelector('#summary-company').textContent = displayValue(user.company);
   document.querySelector('#summary-phone').textContent = displayValue(user.phone);
   document.querySelector('#summary-created').textContent = formatDate(user.createdAt);
